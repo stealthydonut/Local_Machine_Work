@@ -1,5 +1,4 @@
 #https://www.census.gov/data/developers/data-sets/international-trade.html
-
 import pandas as pd
 
 #Generate the list required to build the files
@@ -36,9 +35,14 @@ boplist = [('Afghanistan','5310','AF'),('Albania','4810','AL'),('Algeria','7210'
 ('Kosovo','4803','XK'),('Kuwait','5130','KW')]
 labels=['country', 'use_cc', 'cc']
 df = pd.DataFrame.from_records(boplist, columns=labels)
+df['joinkey']=pd.to_numeric(df['use_cc'], errors='coerce')
+
+
 
 year_list = '2013','2014','2015','2016','2017'
 month_list = '01','02','03','04','05','06','07','08','09','10','11','12'
+
+
 
 #############################################
 #Get the total exports from the United States
@@ -55,13 +59,25 @@ for i in year_list:
             str2 = ''.join([s])
             total_link=link+str1+txt+str2
             df = pd.read_csv(total_link)
+            ##################### change starts here #####################
+            ##################### since it is a dataframe itself, so the method to create a dataframe from a list won't work ########################
+            # Drop the total sales line
+            df.drop(df.index[0])
+            # Rename Column name
+            df.columns=['CTY_CODE','CTY_NAME','ALL_VAL_MO','ALL_VAL_YR','time','UN']
+            # Change the ["1234" to 1234
+            df['CTY_CODE']=df['CTY_CODE'].str[2:-1]
+            # Change the 2017-01] to 2017-01
+            df['time']=df['time'].str[:-1]
+            ##################### change ends here #####################            
             exports = exports.append(df, ignore_index=False)
         except:
             print i
             print s
+            
+         
 
-###########################            
-#Join the country code list
-###########################
+exports['joinkey']=pd.to_numeric(exports['CTY_CODE'], errors='coerce')
 
-
+bigdata2=pd.merge(df, exports, left_on='joinkey', right_on='joinkey')
+bigdata2['cnt']=1
