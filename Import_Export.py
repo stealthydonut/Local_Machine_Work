@@ -1,5 +1,7 @@
 #https://www.census.gov/data/developers/data-sets/international-trade.html
 import pandas as pd
+import requests
+from pandas.compat import StringIO
 
 #Generate the list required to build the files
 
@@ -58,7 +60,8 @@ for i in year_list:
             txt = '-'
             str2 = ''.join([s])
             total_link=link+str1+txt+str2
-            df = pd.read_csv(total_link)
+            r = requests.get(total_link)
+            df = pd.read_csv(StringIO(r.text))
             ##################### change starts here #####################
             ##################### since it is a dataframe itself, so the method to create a dataframe from a list won't work ########################
             # Drop the total sales line
