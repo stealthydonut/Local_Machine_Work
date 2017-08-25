@@ -80,6 +80,8 @@ imports.__delitem__('UN')
 imexdata=pd.merge(imports, exports, left_on=('CTY_CODE','CTY_NAME','time'), right_on=('CTY_CODE','CTY_NAME','time'))
 imexdata['fred_key']=pd.to_numeric(imexdata['CTY_CODE'], errors='coerce')
 imexdata_gold=imexdata[imexdata['fred_key']>0]
+imexdata_gold['date2']=pd.to_datetime(imexdata_gold['time'], errors='coerce')
+imexdata_gold['monthyear'] = imexdata_gold['date2'].dt.strftime("%Y,%m")
 
 
 #Generate a country list
@@ -418,23 +420,24 @@ sdrx3.__delitem__('date2')
 
 
 ressdr=pd.merge(reservex3, sdrx3, left_on=('fredkey','monthyear','cc'), right_on=('fredkey','monthyear','cc'))
+ressdr['fred_key']=pd.to_numeric(ressdr['fredkey'], errors='coerce')
 
 ##################################################
 #Join the imports and reserves by country together
 ##################################################
 
-imexdata_withcc=pd.merge(cc_list, imexdata, left_on='fred_key', right_on='fred_key')
+imexdata_withcc=pd.merge(cc_list, imexdata_gold, left_on='fred_key', right_on='fred_key')
+imexdata_ressdr=pd.merge(ressdr, imexdata_withcc, how='outer', left_on=('fred_key','monthyear'), right_on=('fred_key','monthyear'))
 
-
-
-
-print cc_list.dtypes
 
 ##################################################################
 #Generate a total by country to align with the imports and exports
 #################################################################
 
 allgroup = ressdr.groupby(['monthyear',], as_index=False)['sdr_amt_mm','reserve_amt_mm'].sum() 
+
+
+
 
 
 
