@@ -39,8 +39,10 @@ for i in year_list:
         except:
             print i
             print s
+
             
-exports.__delitem__('UN')
+            
+
 #############################################
 #Get the total imports from the United States
 #############################################
@@ -73,10 +75,12 @@ for i in year_list:
             print i
             print s
 
-imports.__delitem__('UN')
+
 ######################################
 #Join the imports and exports together
 ###################################### 
+exports.__delitem__('UN')
+imports.__delitem__('UN')
 imexdata=pd.merge(imports, exports, left_on=('CTY_CODE','CTY_NAME','time'), right_on=('CTY_CODE','CTY_NAME','time'))
 imexdata['fred_key']=pd.to_numeric(imexdata['CTY_CODE'], errors='coerce')
 imexdata_gold=imexdata[imexdata['fred_key']>0]
@@ -425,7 +429,8 @@ ressdr['fred_key']=pd.to_numeric(ressdr['fredkey'], errors='coerce')
 ##################################################
 #Join the imports and reserves by country together
 ##################################################
-
+imexdata_gold['import_amt_mm']=imexdata_gold['IMPORT MTH']/100000000   
+imexdata_gold['export_amt_mm']=imexdata_gold['EXPORT MTH']/100000000   
 imexdata_withcc=pd.merge(cc_list, imexdata_gold, left_on='fred_key', right_on='fred_key')
 imexdata_ressdr=pd.merge(ressdr, imexdata_withcc, how='outer', left_on=('fred_key','monthyear'), right_on=('fred_key','monthyear'))
 
@@ -434,7 +439,7 @@ imexdata_ressdr=pd.merge(ressdr, imexdata_withcc, how='outer', left_on=('fred_ke
 #Generate a total by country to align with the imports and exports
 #################################################################
 
-allgroup = ressdr.groupby(['monthyear',], as_index=False)['sdr_amt_mm','reserve_amt_mm'].sum() 
+allgroup = imexdata_ressdr.groupby(['monthyear'], as_index=False, sort=False)['sdr_amt_mm','reserve_amt_mm','export_amt_mm','import_amt_mm'].sum() 
 
 
 
