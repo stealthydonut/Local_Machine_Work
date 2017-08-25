@@ -461,21 +461,23 @@ inMemoryFile.seek(0)
 details=pd.read_csv(inMemoryFile, low_memory=False)
 
 
-month_list=['JAN','FEB','MAR']
+month_list=['JAN','01'],['FEB','02']#,'MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC']
+month_list2 = [x.strip(' ') for x in month_list2]  
 
 historical = pd.DataFrame()
 
 for i in month_list:
-    str1 = ''.join([i])
+    str1 = ''.join([i][1])
     value = 'I'+str1
     value2 = 'E'+str1
     details['month']=str1    
-    details['Iamount']=details[value]
-    details['Eamount']=details[value2]
+    details['IMPORT MTH']=details[value]
+    details['EXPORT MTH']=details[value2]
     vardataset = details[['year','CTY_CODE','CTYNAME','month','Iamount','Eamount']]
     historical = historical.append(vardataset, ignore_index=False)
    
-    
+
+historical['date2']=pd.to_datetime(imexdata_gold['time'], errors='coerce')
     
 
 
