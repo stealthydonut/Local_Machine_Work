@@ -4,6 +4,18 @@ from pandas.compat import StringIO
 #Sourced from the following site https://github.com/mortada/fredapi
 from fredapi import Fred
 fred = Fred(api_key='4af3776273f66474d57345df390d74b6')
+import StringIO
+import datetime
+import sys
+if sys.version_info[0] < 3: 
+    from StringIO import StringIO as stio
+else:
+    from io import StringIO as stio
+
+
+
+
+
 
 year_list = '2013','2014','2015','2016','2017'
 month_list = '01','02','03','04','05','06','07','08','09','10','11','12'
@@ -426,6 +438,53 @@ sdrx3.__delitem__('date2')
 ressdr=pd.merge(reservex3, sdrx3, left_on=('fredkey','monthyear','cc'), right_on=('fredkey','monthyear','cc'))
 ressdr['fred_key']=pd.to_numeric(ressdr['fredkey'], errors='coerce')
 
+#######################################
+#Get the historical imports and exports
+#######################################
+
+############################
+#Get the detail file
+############################
+from google.cloud import storage
+client = storage.Client()
+bucket = client.get_bucket('macrofiles')
+# Then do other things...
+blob = bucket.get_blob('US_Import_Export.csv')
+content = blob.download_as_string()
+#Because the pandas dataframe can only read from buffers or files, we need to take the string and put it into a buffer
+inMemoryFile = StringIO.StringIO()
+inMemoryFile.write(content)
+#When you buffer, the "cursor" is at the end, and when you read it, the starting position is at the end and it will not pick up anything
+inMemoryFile.seek(0)
+#Note - anytime you read from a buffer you need to seek so it starts at the beginning
+#The low memory false exists because there was a lot of data
+details=pd.read_csv(inMemoryFile, low_memory=False)
+
+
+month_list=['JAN','FEB','MAR']
+
+historical = pd.DataFrame()
+
+for i in month_list:
+    str1 = ''.join([i])
+    value = 'I'+str1
+    value2 = 'E'+str1
+    details['month']=str1    
+    details['Iamount']=details[value]
+    details['Eamount']=details[value2]
+    vardataset = details[['year','CTY_CODE','CTYNAME','month','Iamount','Eamount']]
+    historical = historical.append(vardataset, ignore_index=False)
+   
+    
+    
+
+
+
+
+
+
+
+
 ##################################################
 #Join the imports and reserves by country together
 ##################################################
@@ -441,7 +500,14 @@ imexdata_ressdr=pd.merge(ressdr, imexdata_withcc, how='outer', left_on=('fred_ke
 
 allgroup = imexdata_ressdr.groupby(['monthyear'], as_index=False, sort=False)['sdr_amt_mm','reserve_amt_mm','export_amt_mm','import_amt_mm'].sum() 
 
-
+#Put the dataset back into storage
+from google.cloud import storage
+client = storage.Client()
+bucket2 = client.get_bucket('macrofiles')
+df_out = pd.DataFrame(outputfile)
+df_out.to_csv('high_low_GDXJ.csv', index=False)
+blob2 = bucket2.blob('high_low_GDXJ.csv')
+blob2.upload_from_filename('high_low_GDXJ.csv')
 
 
 
