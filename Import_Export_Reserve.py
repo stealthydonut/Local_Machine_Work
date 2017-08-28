@@ -34,7 +34,7 @@ for i in year_list:
             txt = '-'
             str2 = ''.join([s])
             total_link=link+str1+txt+str2
-            r = requests.get(total_link)
+            r = requests.get(total_link, headers = {'User-agent': 'your bot 0.1'})
             df = pd.read_csv(StringIO(r.text))
             ##################### change starts here #####################
             ##################### since it is a dataframe itself, so the method to create a dataframe from a list won't work ########################
@@ -495,15 +495,9 @@ histdata["p1"] = histdata["day"].map(str) + histdata["slash"]
 histdata["p2"] = histdata["p1"].map(str) + histdata["monthn"]
 histdata["p3"] = histdata["p2"].map(str) + histdata["slash"]
 histdata["period"] = histdata["p3"].map(str) + histdata["year3"]
-
-
-test4['dateplotx'] = [dt.datetime(year=int(d.year), month=int(d.month), day=int(d.day)) for d in monthly_filex['ind']]
-
-details['year2']=str(details['year'])
-historical['date2']=pd.to_datetime(imexdata_gold['time'], errors='coerce')
-    
-
-
+histdata['ind']=pd.to_datetime(histdata['period'], errors='coerce')
+histdata['monthyear'] = histdata['ind'].dt.strftime("%Y,%m")
+histdata2 = histdata[['year','CTY_CODE','CTYNAME','month','IMPORT MTH','EXPORT MTH','period','monthyear']]   
 
 
 
