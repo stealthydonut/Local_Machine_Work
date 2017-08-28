@@ -461,19 +461,33 @@ inMemoryFile.seek(0)
 details=pd.read_csv(inMemoryFile, low_memory=False)
 
 
-month_list=['JAN','01'],['FEB','02']#,'MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC']
-month_list2 = [x.strip(' ') for x in month_list2]  
+#############################################################################
+#Make two strip list, one strip list with the alpha, and one with the numeric
+#############################################################################
+
+month_list=[('JAN','01'),('FEB','02'),('MAR','03'),('APR','04'),('MAY','05'),('JUN','06'),('JUL','07'),('AUG','08'),('SEP','09'),('OCT','10'),('NOV','11'),('DEC','12')]
+labels = ['montha', 'monthn']
+
+df = pd.DataFrame.from_records(month_list, columns=labels)
+#Get the month list in alpha
+df1=df['montha']
+monthlista=df1.values.T.tolist()
+monthlista = [x.strip(' ') for x in monthlista]   
+#Get the monht list in numeric
+df1=df['monthn']
+monthlistn=df1.values.T.tolist()
+monthlistn = [x.strip(' ') for x in monthlistn]   
 
 historical = pd.DataFrame()
 
-for i in month_list:
-    str1 = ''.join([i][1])
+for i in monthlista:
+    str1 = ''.join([i])
     value = 'I'+str1
     value2 = 'E'+str1
     details['month']=str1    
     details['IMPORT MTH']=details[value]
     details['EXPORT MTH']=details[value2]
-    vardataset = details[['year','CTY_CODE','CTYNAME','month','Iamount','Eamount']]
+    vardataset = details[['year','CTY_CODE','CTYNAME','month','IMPORT MTH','EXPORT MTH']]
     historical = historical.append(vardataset, ignore_index=False)
    
 
