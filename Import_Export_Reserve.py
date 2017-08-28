@@ -498,7 +498,8 @@ histdata["period"] = histdata["p3"].map(str) + histdata["year3"]
 histdata['ind']=pd.to_datetime(histdata['period'], errors='coerce')
 histdata['monthyear'] = histdata['ind'].dt.strftime("%Y,%m")
 histdata2 = histdata[['year','CTY_CODE','CTYNAME','month','IMPORT MTH','EXPORT MTH','period','monthyear']]   
-
+histdata2['fred_key']=histdata2['CTY_CODE']
+imexdata_gold=histdata2
 
 
 
@@ -523,10 +524,10 @@ allgroup = imexdata_ressdr.groupby(['monthyear'], as_index=False, sort=False)['s
 from google.cloud import storage
 client = storage.Client()
 bucket2 = client.get_bucket('macrofiles')
-df_out = pd.DataFrame(outputfile)
-df_out.to_csv('high_low_GDXJ.csv', index=False)
-blob2 = bucket2.blob('high_low_GDXJ.csv')
-blob2.upload_from_filename('high_low_GDXJ.csv')
+df_out = pd.DataFrame(imexdata_ressdr)
+df_out.to_csv('import_export_res_sdr.csv', index=False)
+blob2 = bucket2.blob('import_export_res_sdr.csv')
+blob2.upload_from_filename('import_export_res_sdr.csv')
 
 
 
