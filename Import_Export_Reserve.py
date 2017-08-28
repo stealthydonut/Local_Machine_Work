@@ -468,15 +468,11 @@ details=pd.read_csv(inMemoryFile, low_memory=False)
 month_list=[('JAN','01'),('FEB','02'),('MAR','03'),('APR','04'),('MAY','05'),('JUN','06'),('JUL','07'),('AUG','08'),('SEP','09'),('OCT','10'),('NOV','11'),('DEC','12')]
 labels = ['montha', 'monthn']
 
-df = pd.DataFrame.from_records(month_list, columns=labels)
+monthlist = pd.DataFrame.from_records(month_list, columns=labels)
 #Get the month list in alpha
-df1=df['montha']
+df1=monthlist['montha']
 monthlista=df1.values.T.tolist()
 monthlista = [x.strip(' ') for x in monthlista]   
-#Get the monht list in numeric
-df1=df['monthn']
-monthlistn=df1.values.T.tolist()
-monthlistn = [x.strip(' ') for x in monthlistn]   
 
 historical = pd.DataFrame()
 
@@ -490,7 +486,20 @@ for i in monthlista:
     vardataset = details[['year','CTY_CODE','CTYNAME','month','IMPORT MTH','EXPORT MTH']]
     historical = historical.append(vardataset, ignore_index=False)
    
+histdata=pd.merge(historical, monthlist, left_on='month', right_on='montha')
+histdata['day']='01'
+histdata['year2']=histdata['year'].astype(str)
+histdata['year3'] = histdata['year2'].str[:4]
+histdata['slash']='/'
+histdata["p1"] = histdata["day"].map(str) + histdata["slash"]
+histdata["p2"] = histdata["p1"].map(str) + histdata["monthn"]
+histdata["p3"] = histdata["p2"].map(str) + histdata["slash"]
+histdata["period"] = histdata["p3"].map(str) + histdata["year3"]
 
+
+test4['dateplotx'] = [dt.datetime(year=int(d.year), month=int(d.month), day=int(d.day)) for d in monthly_filex['ind']]
+
+details['year2']=str(details['year'])
 historical['date2']=pd.to_datetime(imexdata_gold['time'], errors='coerce')
     
 
