@@ -168,7 +168,8 @@ silver['ind']=silver.index
 oil['ind']=oil.index
 copper['ind']=copper.index
 paladium['ind']=paladium.index
-platinum['ind']=platinum.index  
+platinum['ind']=platinum.index 
+balticdryindex['ind']=balticdryindex.index
 fxusdcad['ind']=fxusdcad.index
 fxusdyuan['ind']=fxusdyuan.index
 fxusdjap['ind']=fxusdjap.index
@@ -201,9 +202,13 @@ df15=df14.merge(fedassets, on='ind', how='outer')
 df16=df15.merge(treas10x, on='ind', how='outer')
 df17=df16.merge(dfgld, on='ind', how='outer')
 df18=df17.merge(copper, on='ind', how='outer') 
-daily_file=df18.merge(oil, on='ind', how='outer')
+df19=df18.merge(balticdryindex, on='ind', how='outer') 
+daily_file=df19.merge(oil, on='ind', how='outer')
 #Generate a daily timestamp
 daily_file['daily date']=daily_file['ind']
+
+
+
 
 #################################
 #Merge the monthly files together
@@ -218,8 +223,8 @@ ustax['ind'] = ustax.index
 ustax['monthyear'] = ustax['ind'].dt.strftime("%Y,%m")
 shiller['ind'] = shiller.index
 shiller['monthyear'] = shiller['ind'].dt.strftime("%Y,%m")
-balticdryindex['ind'] = balticdryindex.index
-balticdryindex['monthyear'] = balticdryindex['ind'].dt.strftime("%Y,%m")
+#balticdryindex['ind'] = balticdryindex.index
+#balticdryindex['monthyear'] = balticdryindex['ind'].dt.strftime("%Y,%m")
 balticcapesizeindex['ind'] = balticcapesizeindex.index
 balticcapesizeindex['monthyear'] = balticcapesizeindex['ind'].dt.strftime("%Y,%m")
 balticsupramexindex['ind'] = balticsupramexindex.index
@@ -241,8 +246,8 @@ ustaxx = ustax
 ustaxx.__delitem__('ind')
 shillerx = shiller
 shillerx.__delitem__('ind')
-balticdryindexx = balticdryindex
-balticdryindexx.__delitem__('ind')
+#balticdryindexx = balticdryindex
+#balticdryindexx.__delitem__('ind')
 balticcapesizeindexx = balticcapesizeindex
 balticcapesizeindexx.__delitem__('ind')
 balticsupramexindexx = balticsupramexindex
@@ -260,8 +265,8 @@ daily_file['monthyear'] = daily_file['ind'].dt.strftime("%Y,%m")
 mf=ustaxx.merge(fed_funds_ratex, on='monthyear', how='outer')
 mf1=mf.merge(ismx, on='monthyear', how='outer')
 mf2=mf1.merge(shillerx, on='monthyear', how='outer')
-mf3=mf2.merge(balticdryindexx, on='monthyear', how='outer')
-mf4=mf3.merge(trade_Weighted_Indexx, on='monthyear', how='outer')
+#mf3=mf2.merge(balticdryindexx, on='monthyear', how='outer')
+mf4=mf2.merge(trade_Weighted_Indexx, on='monthyear', how='outer')
 mf5=mf4.merge(uraniumx, on='monthyear', how='outer')
 #mf6=mf5.merge(balticcapesizeindexx, on='monthyear', how='outer')
 #mf7=mf6.merge(balticsupramexindexx, on='monthyear', how='outer')
@@ -300,12 +305,13 @@ daily_file['libor3mth daycnt'] = np.where(daily_file['libor3mth']>0, 1, 0)
 daily_file['libor12mth daycnt'] = np.where(daily_file['libor12mth']>0, 1, 0)
 daily_file['fedassets daycnt'] = np.where(daily_file['fedassets']>0, 1, 0)
 daily_file['treas10mth daycnt'] = np.where(daily_file['treas10mth']>0, 1, 0)
+daily_file['balticdryindex Index daycnt'] = np.where(daily_file['balticdryindex Index']>0, 1, 0)
 daily_file['Total Net Asset Value Tonnes in the Trust daycnt'] = np.where(daily_file['Total Net Asset Value Tonnes in the Trust']>0, 1, 0)
 daily_file['daycnt'] = 1
 dailymth = daily_file.groupby(['monthyear'], as_index=False)['daycnt','Gold daycnt','Silver daycnt','Oil daycnt','Copper daycnt',\
-'libor3mth daycnt','libor12mth daycnt','fedassets daycnt','treas10mth daycnt','libor3mth','libor12mth','fedassets','treas10mth',\
+'libor3mth daycnt','libor12mth daycnt','fedassets daycnt','treas10mth daycnt','libor3mth','libor12mth','fedassets','treas10mth','balticdryindex Index daycnt',\
 'Total Net Asset Value Tonnes in the Trust daycnt','Gold USD (AM)','Gold USD (PM)','Gold GBP (AM)','Gold GBP (PM)','Gold EURO (AM)','Gold EURO (PM)','Copper USD',\
-'Silver USD','Silver GBP','Silver EURO','Oil USD','Total Net Asset Value Tonnes in the Trust'].sum()
+'Silver USD','Silver GBP','Silver EURO','Oil USD','Total Net Asset Value Tonnes in the Trust','balticdryindex Index'].sum()
 
 ################################
 #Merge the monthly data together
@@ -313,11 +319,11 @@ dailymth = daily_file.groupby(['monthyear'], as_index=False)['daycnt','Gold dayc
 mf=ustax.merge(dailymth, on='monthyear', how='outer')
 mf1=mf.merge(ism, on='monthyear', how='outer')
 mf2=mf1.merge(shiller, on='monthyear', how='outer')
-mf3=mf2.merge(balticdryindex, on='monthyear', how='outer')
+#mf3=mf2.merge(balticdryindex, on='monthyear', how='outer')
 #mf4=mf3.merge(balticcapesizeindex, on='monthyear', how='outer')
 #mf5=mf4.merge(balticsupramexindex, on='monthyear', how='outer')
 #mf6=mf5.merge(balticpanamaxindex, on='monthyear', how='outer')
-mf7=mf3.merge(trade_Weighted_Index, on='monthyear', how='outer')
+mf7=mf2.merge(trade_Weighted_Index, on='monthyear', how='outer')
 mf8=mf7.merge(fed_funds_rate, on='monthyear', how='outer')
 monthly_file=mf8.merge(uranium, on='monthyear', how='outer')
 
