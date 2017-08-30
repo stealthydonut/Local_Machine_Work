@@ -1,3 +1,5 @@
+import StringIO
+
 ############################
 #Get the detail file
 ############################
@@ -5,7 +7,7 @@ from google.cloud import storage
 client = storage.Client()
 bucket = client.get_bucket('macrofiles')
 # Then do other things...
-blob = bucket.get_blob('US_Import_Export.csv')
+blob = bucket.get_blob('import_export_res_sdr.csv')
 content = blob.download_as_string()
 #Because the pandas dataframe can only read from buffers or files, we need to take the string and put it into a buffer
 inMemoryFile = StringIO.StringIO()
@@ -15,3 +17,8 @@ inMemoryFile.seek(0)
 #Note - anytime you read from a buffer you need to seek so it starts at the beginning
 #The low memory false exists because there was a lot of data
 details=pd.read_csv(inMemoryFile, low_memory=False)
+
+#Aggregate the data at the monthly level to join with the daily files
+
+allgroup = details.groupby(['monthyear'], as_index=False, sort=False)['sdr_amt_mm','reserve_amt_mm','export_amt_mm','import_amt_mm'].sum() 
+
