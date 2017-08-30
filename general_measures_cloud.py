@@ -202,33 +202,31 @@ df16=df15.merge(treas10x, on='ind', how='outer')
 df17=df16.merge(dfgld, on='ind', how='outer')
 df18=df17.merge(copper, on='ind', how='outer') 
 daily_file=df18.merge(oil, on='ind', how='outer')
-
-
 #################################
 #Merge the monthly files together
 #################################
 ism['ind'] = ism.index
-ism['monthyear'] = ism['ind'].dt.strftime("%m,%y")
+ism['monthyear'] = ism['ind'].dt.strftime("%Y,%m")
 ism2['ind'] = ism2.index
-ism2['monthyear'] = ism2['ind'].dt.strftime("%m,%y")
+ism2['monthyear'] = ism2['ind'].dt.strftime("%Y,%m")
 uranium['ind'] = uranium.index
-uranium['monthyear'] = uranium['ind'].dt.strftime("%m,%y")
+uranium['monthyear'] = uranium['ind'].dt.strftime("%Y,%m")
 ustax['ind'] = ustax.index
-ustax['monthyear'] = ustax['ind'].dt.strftime("%m,%y")
+ustax['monthyear'] = ustax['ind'].dt.strftime("%Y,%m")
 shiller['ind'] = shiller.index
-shiller['monthyear'] = shiller['ind'].dt.strftime("%m,%y")
+shiller['monthyear'] = shiller['ind'].dt.strftime("%Y,%m")
 balticdryindex['ind'] = balticdryindex.index
-balticdryindex['monthyear'] = balticdryindex['ind'].dt.strftime("%m,%y")
+balticdryindex['monthyear'] = balticdryindex['ind'].dt.strftime("%Y,%m")
 balticcapesizeindex['ind'] = balticcapesizeindex.index
-balticcapesizeindex['monthyear'] = balticcapesizeindex['ind'].dt.strftime("%m,%y")
+balticcapesizeindex['monthyear'] = balticcapesizeindex['ind'].dt.strftime("%Y,%m")
 balticsupramexindex['ind'] = balticsupramexindex.index
-balticsupramexindex['monthyear'] = balticsupramexindex['ind'].dt.strftime("%m,%y")
+balticsupramexindex['monthyear'] = balticsupramexindex['ind'].dt.strftime("%Y,%m")
 balticpanamaxindex['ind'] = balticpanamaxindex.index
-balticpanamaxindex['monthyear'] = balticpanamaxindex['ind'].dt.strftime("%m,%y")
+balticpanamaxindex['monthyear'] = balticpanamaxindex['ind'].dt.strftime("%Y,%m")
 trade_Weighted_Index['ind'] = trade_Weighted_Index.index
-trade_Weighted_Index['monthyear'] = trade_Weighted_Index['ind'].dt.strftime("%m,%y")
+trade_Weighted_Index['monthyear'] = trade_Weighted_Index['ind'].dt.strftime("%Y,%m")
 fed_funds_rate['ind'] = fed_funds_rate.index
-fed_funds_rate['monthyear'] = fed_funds_rate['ind'].dt.strftime("%m,%y")
+fed_funds_rate['monthyear'] = fed_funds_rate['ind'].dt.strftime("%Y,%m")
 #####################################
 #Clean up files to join to daily file
 #####################################
@@ -252,14 +250,10 @@ trade_Weighted_Indexx = trade_Weighted_Index
 trade_Weighted_Indexx.__delitem__('ind')
 fed_funds_ratex = fed_funds_rate
 fed_funds_ratex.__delitem__('ind')
-
 ########################################
 #Create the monthly files for daily data
 ########################################
-
-
-daily_file['monthyear'] = daily_file['ind'].dt.strftime("%m,%y")
-
+daily_file['monthyear'] = daily_file['ind'].dt.strftime("%Y,%m")
 mf=ustaxx.merge(fed_funds_ratex, on='monthyear', how='outer')
 mf1=mf.merge(ismx, on='monthyear', how='outer')
 mf2=mf1.merge(shillerx, on='monthyear', how='outer')
