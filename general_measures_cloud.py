@@ -202,6 +202,9 @@ df16=df15.merge(treas10x, on='ind', how='outer')
 df17=df16.merge(dfgld, on='ind', how='outer')
 df18=df17.merge(copper, on='ind', how='outer') 
 daily_file=df18.merge(oil, on='ind', how='outer')
+#Generate a daily timestamp
+daily_file['daily date']=daily_file['ind']
+
 #################################
 #Merge the monthly files together
 #################################
@@ -292,10 +295,17 @@ blob2.upload_from_filename('daily_monthly_file.csv')
 daily_file['Gold daycnt'] = np.where(daily_file['Gold USD (AM)']>0, 1, 0)
 daily_file['Silver daycnt'] = np.where(daily_file['Silver USD']>0, 1, 0)
 daily_file['Oil daycnt'] = np.where(daily_file['Oil USD']>0, 1, 0)
+daily_file['Copper daycnt'] = np.where(daily_file['Copper USD']>0, 1, 0)
+daily_file['libor3mth daycnt'] = np.where(daily_file['libor3mth']>0, 1, 0)
+daily_file['libor12mth daycnt'] = np.where(daily_file['libor12mth']>0, 1, 0)
+daily_file['fedassets daycnt'] = np.where(daily_file['fedassets']>0, 1, 0)
+daily_file['treas10mth daycnt'] = np.where(daily_file['treas10mth']>0, 1, 0)
+daily_file['Total Net Asset Value Tonnes in the Trust daycnt'] = np.where(daily_file['Total Net Asset Value Tonnes in the Trust']>0, 1, 0)
 daily_file['daycnt'] = 1
-dailymth = daily_file.groupby(['monthyear'], as_index=False)['daycnt','Gold daycnt','Silver daycnt','Oil daycnt',\
-'Gold USD (AM)','Gold USD (PM)','Gold GBP (AM)','Gold GBP (PM)','Gold EURO (AM)','Gold EURO (PM)',\
-'Silver USD','Silver GBP','Silver EURO','Oil USD'].sum()
+dailymth = daily_file.groupby(['monthyear'], as_index=False)['daycnt','Gold daycnt','Silver daycnt','Oil daycnt','Copper daycnt',\
+'libor3mth daycnt','libor12mth daycnt','fedassets daycnt','treas10mth daycnt','libor3mth','libor12mth','fedassets','treas10mth',\
+'Total Net Asset Value Tonnes in the Trust daycnt','Gold USD (AM)','Gold USD (PM)','Gold GBP (AM)','Gold GBP (PM)','Gold EURO (AM)','Gold EURO (PM)','Copper USD',\
+'Silver USD','Silver GBP','Silver EURO','Oil USD','Total Net Asset Value Tonnes in the Trust'].sum()
 
 ################################
 #Merge the monthly data together
@@ -310,11 +320,28 @@ mf3=mf2.merge(balticdryindex, on='monthyear', how='outer')
 mf7=mf3.merge(trade_Weighted_Index, on='monthyear', how='outer')
 mf8=mf7.merge(fed_funds_rate, on='monthyear', how='outer')
 monthly_file=mf8.merge(uranium, on='monthyear', how='outer')
+
+##################################
+#Put the dataset back into storage
+##################################
+from google.cloud import storage
+client = storage.Client()
+bucket2 = client.get_bucket('macrofiles')
+df_out = pd.DataFrame(monthly_file)
+df_out.to_csv('monthly_file.csv', index=False)
+blob2 = bucket2.blob('monthly_file.csv')
+blob2.upload_from_filename('monthly_file.csv')
+
+
 ############################
 #Build measures on the files
 ############################
 monthly_file['ma6 US Receipts'] = monthly_file['US Receipts'].rolling(window=6).mean()
 monthly_file['ma6 ISM Diffusion Index'] = monthly_file['ISM Diffusion Index'].rolling(window=6).mean()
+
+
+
+
 daily_file['Gold Silver Ratio']=daily_file['Gold USD (PM)']/daily_file['Silver USD']
 daily_file['Gold Oil Ratio']=daily_file['Gold USD (PM)']/daily_file['Oil USD']
 daily_file['Silver Oil Ratio']=daily_file['Silver USD']/daily_file['Oil USD']
