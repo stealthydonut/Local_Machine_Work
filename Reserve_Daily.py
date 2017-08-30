@@ -67,6 +67,26 @@ df_out.to_csv('goldfile.csv', index=False)
 blob2 = bucket2.blob('goldfile.csv')
 blob2.upload_from_filename('goldfile.csv')
 
+
+
+goldfile['goldprice']   = goldfile['Gold USD (AM)']/goldfile['Gold daycnt']
+goldfile['silverprice'] = goldfile['Silver USD']/goldfile['Silver daycnt']
+goldfile['copperprice'] =goldfile['Copper USD']/goldfile['Copper daycnt']
+goldfile['GLD tonnes']=goldfile['Total Net Asset Value Tonnes in the Trust']/goldfile['Total Net Asset Value Tonnes in the Trust daycnt']
+goldfile['oilprice']=goldfile['Oil USD']/goldfile['Oil daycnt']
+goldfile['libor3mthx']=goldfile['libor3mth']/goldfile['libor3mth daycnt']
+goldfile['libor12mthx']=goldfile['libor12mth']/goldfile['libor12mth daycnt']
+goldfile['fedassetsx']=goldfile['fedassets']/goldfile['fedassets daycnt']
+goldfile['treas10mthx']=goldfile['treas10mth']/goldfile['treas10mth daycnt']
+goldfile['balticdryindexx']=goldfile['balticdryindex Index']/goldfile['balticdryindex Index daycnt']
+
+goldfile['Gold Silver Ratio']=goldfile['goldprice']/goldfile['silverprice']
+goldfile['Gold Oil Ratio']=goldfile['goldprice']/goldfile['oilprice']
+goldfile['Silver Oil Ratio']=goldfile['silverprice']/goldfile['oilprice']
+goldfile['Gold Copper Ratio']=goldfile['goldprice']/goldfile['copperprice']
+goldfile['BOT']=goldfile['import_amt_mm']-goldfile['export_amt_mm']
+
+
 monthly_file['ma6 US Receipts'] = monthly_file['US Receipts'].rolling(window=6).mean()
 monthly_file['ma6 ISM Diffusion Index'] = monthly_file['ISM Diffusion Index'].rolling(window=6).mean()
 
