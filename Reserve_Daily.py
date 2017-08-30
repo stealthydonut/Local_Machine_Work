@@ -87,6 +87,24 @@ goldfile['Gold Copper Ratio']=goldfile['goldprice']/goldfile['copperprice']
 goldfile['BOT']=goldfile['import_amt_mm']-goldfile['export_amt_mm']
 
 
+goldfile['ma6 BOT'] = goldfile['BOT'].rolling(window=6).mean()
+
+goldfile['ma6 BOT'] = goldfile['BOT'].rolling(window=6).mean()
+
+
+goldfile['GOR rank'] = goldfile['Gold Oil Ratio'].rank(ascending=1)
+goldfile['GCR rank'] = goldfile['Gold Copper Ratio'].rank(ascending=1)
+
+maxvalue=goldfile.loc[goldfile['GOR rank'].idxmax()]
+maxvalue=goldfile['GOR rank'].values.max()
+print maxvalue
+
+bigdata['per_change_lag1']=bigdata['per_change'].shift(1)
+monthly_file['ma6 US Receipts'] = monthly_file['US Receipts'].rolling(window=6).mean()
+monthly_file['ma6 ISM Diffusion Index'] = monthly_file['ISM Diffusion Index'].rolling(window=6).mean()
+
+
+
 monthly_file['ma6 US Receipts'] = monthly_file['US Receipts'].rolling(window=6).mean()
 monthly_file['ma6 ISM Diffusion Index'] = monthly_file['ISM Diffusion Index'].rolling(window=6).mean()
 
