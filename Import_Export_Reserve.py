@@ -485,14 +485,16 @@ for i in monthlista:
     details['EXPORT MTH']=details[value2]
     vardataset = details[['year','CTY_CODE','CTYNAME','month','IMPORT MTH','EXPORT MTH']]
     historical = historical.append(vardataset, ignore_index=False)
-   
+
+
+    
 histdata=pd.merge(historical, monthlist, left_on='month', right_on='montha')
 histdata['day']='01'
-histdata['year2']=histdata['year'].astype(str)
+histdata['year2'] = histdata['year'].astype(str)
 histdata['year3'] = histdata['year2'].str[:4]
 histdata['slash']='/'
-histdata["p1"] = histdata["day"].map(str) + histdata["slash"]
-histdata["p2"] = histdata["p1"].map(str) + histdata["monthn"]
+histdata["p1"] = histdata["monthn"].map(str) + histdata["slash"]
+histdata["p2"] = histdata["p1"].map(str) + histdata["day"]
 histdata["p3"] = histdata["p2"].map(str) + histdata["slash"]
 histdata["period"] = histdata["p3"].map(str) + histdata["year3"]
 histdata['ind']=pd.to_datetime(histdata['period'], errors='coerce')
@@ -518,7 +520,7 @@ imexdata_ressdr=pd.merge(ressdr, imexdata_withcc, how='outer', left_on=('fred_ke
 #Generate a total by country to align with the imports and exports
 #################################################################
 
-allgroup = imexdata_ressdr.groupby(['monthyear'], as_index=False, sort=False)['sdr_amt_mm','reserve_amt_mm','export_amt_mm','import_amt_mm'].sum() 
+#allgroup = imexdata_ressdr.groupby(['monthyear'], as_index=False, sort=False)['sdr_amt_mm','reserve_amt_mm','import_amt_mm','export_amt_mm'].sum() 
 
 #Put the dataset back into storage
 from google.cloud import storage
