@@ -6,52 +6,35 @@ from fredapi import Fred
 fred = Fred(api_key='4af3776273f66474d57345df390d74b6')
 import StringIO
 import datetime
+import ast
+import itertools
 import sys
 if sys.version_info[0] < 3: 
     from StringIO import StringIO as stio
 else:
     from io import StringIO as stio
 
-
-
-
-
-
-year_list = '2013','2014','2015','2016','2017'
-month_list = '01','02','03','04','05','06','07','08','09','10','11','12'
-
 #############################################
 #Get the total exports from the United States
 #############################################
+base = "https://api.census.gov/data/timeseries/intltrade/exports/hs?get=CTY_CODE,CTY_NAME,ALL_VAL_MO,ALL_VAL_YR&time="
+year_list = ['2013','2014','2015','2016','2017']
+month_list = ['01','02','03','04','05','06','07','08','09','10','11','12']
 
-exports = pd.DataFrame()
+exports = []
+rejects = []
 
-for i in year_list:
-    for s in month_list:
-        try:
-            link="https://api.census.gov/data/timeseries/intltrade/exports/hs?get=CTY_CODE,CTY_NAME,ALL_VAL_MO,ALL_VAL_YR&time="
-            str1 = ''.join([i])
-            txt = '-'
-            str2 = ''.join([s])
-            total_link=link+str1+txt+str2
-            r = requests.get(total_link, headers = {'User-agent': 'your bot 0.1'})
-            df = pd.read_csv(StringIO(r.text))
-            ##################### change starts here #####################
-            ##################### since it is a dataframe itself, so the method to create a dataframe from a list won't work ########################
-            # Drop the total sales line
-            df.drop(df.index[0])
-            # Rename Column name
-            df.columns=['CTY_CODE','CTY_NAME','EXPORT MTH','EXPORT YR','time','UN']
-            # Change the ["1234" to 1234
-            df['CTY_CODE']=df['CTY_CODE'].str[2:-1]
-            # Change the 2017-01] to 2017-01
-            df['time']=df['time'].str[:-1]
-            ##################### change ends here #####################            
-            exports = exports.append(df, ignore_index=False)
-        except:
-            print i
-            print s
+for year, month in itertools.product(year_list, month_list):
+    url = '%s%s-%s' % (base, year, month)
+    r = requests.get(url, headers={'User-agent': 'your bot 0.1'})
+    if r.text:
+        r = ast.literal_eval(r.text)
+        df = pd.DataFrame(r[2:], columns=r[0])
+        exports.append(df)
+    else:
+        rejects.append((int(year), int(month)))
 
+exports = pd.concat(exports).reset_index().drop('index', axis=1)
             
             
 
