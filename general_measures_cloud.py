@@ -43,7 +43,7 @@ treas10 = fred.get_series_all_releases('DGS10') #10-Year Treasury Constant Matur
 libor3 = fred.get_series_all_releases('USD3MTD156N') #libor
 fedassets = fred.get_series_all_releases('WALCL')# All Federal Reserve Banks: Total Assets (WALCL) #Federal reserve balance sheet
 libor12 = fred.get_series_all_releases('USD12MD156N')# 12 month libor
-
+fedbudget = fred.get_series_all_releases('MTSDS133FMS')# Budget Surplus/Deficity
 ############
 #Quandl Data
 #############
@@ -121,10 +121,14 @@ treas10['treas10mth']=pd.to_numeric(treas10['value'], errors='coerce')
 treas10['ind']=pd.to_datetime(treas10['date'], errors='coerce')
 fedassets['fedassets']=pd.to_numeric(fedassets['value'], errors='coerce')
 fedassets['ind']=pd.to_datetime(fedassets['date'], errors='coerce')
+fedbudget['fedbudget']=pd.to_numeric(fedbudget['value'], errors='coerce')
+fedassets['ind']=pd.to_datetime(fedbudget['date'], errors='coerce')
+
 libor3x=libor3[['libor3mth','ind']]
 libor12x=libor12[['libor12mth','ind']]
 treas10x=treas10[['treas10mth','ind']]
 fedassetsx=fedassets[['fedassets','ind']]
+fedbudgetx=fedbudget[['fedbudget','ind']]
 ######################
 #Clean up the GLD data
 ######################
