@@ -1,17 +1,20 @@
 import ast
 import itertools
-
+import numpy as np
 import pandas as pd
 import requests
 import datetime
+
 from pandas.compat import StringIO
 #Sourced from the following site https://github.com/mortada/fredapi
 from fredapi import Fred
 fred = Fred(api_key='4af3776273f66474d57345df390d74b6')
 import StringIO
-import datetime
+import datetime as dt
 import ast
 import itertools
+import matplotlib
+import matplotlib.pyplot as plt
 import sys
 if sys.version_info[0] < 3: 
     from StringIO import StringIO as stio
@@ -482,19 +485,68 @@ imexdata_gold["p3"] = imexdata_gold["p2"].map(str) + imexdata_gold["slash"]
 imexdata_gold["period"] = imexdata_gold["p3"].map(str) + imexdata_gold["year2"]
 imexdata_gold['ind']=pd.to_datetime(imexdata_gold['period'], errors='coerce')
 imexdata_gold['monthyear'] = imexdata_gold['ind'].dt.strftime("%Y,%m")
-imexdata_gold2 = imexdata_gold[['year','fred_key','CTYNAME','IMPORT MTH','EXPORT MTH','period','monthyear']]   
+imexdata_gold2 = imexdata_gold[['year','fred_key','CTYNAME','IMPORT MTH','EXPORT MTH','period','monthyear','date2']]   
 ####################################################
 #Merge the historical and the current files together
 ####################################################
 imexdata_merge = histdata2.append(imexdata_gold2, ignore_index=True)
 imexdata_merge2=imexdata_merge.drop_duplicates(['fred_key','monthyear'], keep='last')
-imexdata_merge2['import_amt_mm']=imexdata_merge2['IMPORT MTH']/100000000   
-imexdata_merge2['export_amt_mm']=imexdata_merge2['EXPORT MTH']/100000000   
 imexdata_ressdr=pd.merge(ressdr, imexdata_merge2, how='outer', left_on=('fred_key','monthyear'), right_on=('fred_key','monthyear'))
+########################
+#Build measures to graph
+########################
+imexdata_ressdr['import_amt_mm']=imexdata_ressdr['IMPORT MTH']/100000000   
+imexdata_ressdr['export_amt_mm']=imexdata_ressdr['EXPORT MTH']/100000000  
+imexdata_ressdr['trade_balances']=imexdata_ressdr['import_amt_mm']-imexdata_ressdr['export_amt_mm']
+imexdata_ressdr['balance of reserve']=imexdata_ressdr['trade_balances']/imexdata_ressdr['reserve_amt_mm']
+imexdata_ressdr['im_ex_ratio']=imexdata_ressdr['import_amt_mm']/imexdata_ressdr['export_amt_mm']  
+###############################################
+#Only include data of the big reserve countries
+############################################### 
+rankvar=imexdata_ressdr[imexdata_ressdr['monthyear']=='2017,07']
+rankvar['Ranked'] = rankvar['reserve_amt_mm'].rank(ascending=1)
+rankvar2=rankvar[rankvar['Ranked'].notnull()]
+rankvar2=rankvar2[['Ranked','cc']]
+rankvar2['all']=1
+rankvar2['All_Rank'] = rankvar2.groupby('all')['Ranked'].rank(ascending=False)
+all2=pd.merge(rankvar2, imexdata_ressdr, how='outer', left_on='cc', right_on='cc')
 
-test=pd.merge(cc_list, imexdata_ressdr, left_on='fred_key', right_on='fred_key')
+#Build a country list 
+cclist_for=all2[['cc']]
+cclist_for2=cclist_for.drop_duplicates(['cc'], keep='last')
+df1=cclist_for2['cc']
+df2=df1.values.T.tolist()
 
-test2=test[test['cc_x']=='CA']
+graphdata = pd.DataFrame()
+dateplot = []
+dateplot2 = []
+
+#Get the axis values for each 
+
+all2['year'] = all2['date2'].dt.strftime("%Y")
+all2['month'] = all2['date2'].dt.strftime("%m")
+all2['day'] = all2['date2'].dt.strftime("%d")
+
+
+for i in df2:
+    str1 = ''.join([i])
+    fileset=all2[all2['cc']==str1]    
+    fileset['ma6 import_amt_mm'] = fileset['import_amt_mm'].rolling(window=6).mean()
+    fileset['ma6 export_amt_mm'] = fileset['export_amt_mm'].rolling(window=6).mean()
+    fileset['ma6 trade_balances'] = fileset['trade_balances'].rolling(window=6).mean()
+    fileset[['trade_balances']] = fileset[['trade_balances']].apply(pd.to_numeric)
+    fileset[['ma6 import_amt_mm']] = fileset[['ma6 import_amt_mm']].apply(pd.to_numeric)
+    fileset[['ma6 export_amt_mm']] = fileset[['ma6 export_amt_mm']].apply(pd.to_numeric)
+    test3=pd.DataFrame(fileset[fileset['date2'].notnull()])
+    test4=test3.drop_duplicates(['date2'], keep='last')
+    fig = plt.figure(figsize=(20,15))
+    #As soon as graph1 is initialized, everything below the block is included until another graph is initialized
+    graph1 = fig.add_subplot(411)
+    graph1.tick_params('y', colors='b')
+    graph1.plot(test4['date2'],test4['ma6 import_amt_mm'],'b-', linewidth=6.0, label='ma6 import_amt_mm')
+    graph1.plot(test4['date2'],test4['ma6 export_amt_mm'],'r-', linewidth=6.0, label='ma6 export_amt_mm')   
+    plt.title(str1)
+    graph1.legend(loc='best')
 
 
 
