@@ -510,8 +510,17 @@ rankvar2=rankvar2[['Ranked','cc']]
 rankvar2['all']=1
 rankvar2['All_Rank'] = rankvar2.groupby('all')['Ranked'].rank(ascending=False)
 all2=pd.merge(rankvar2, imexdata_ressdr, how='outer', left_on='cc', right_on='cc')
+all2['cc cnt']=1
+all2['dayx']='01'
+all2['yearx']=all2['monthyear'].str[:4]
+all2['monthx']=all2['monthyear'].str[5:]
+all2['dash']='-'
+all2['date all']=all2['dayx']+all2['dash']+all2['monthx']+all2['dash']+all2['yearx']
+all2['ind']=pd.to_datetime(all2['date all'], errors='coerce')    
 
+#####################      
 #Build a country list 
+#####################
 cclist_for=all2[['cc']]
 cclist_for2=cclist_for.drop_duplicates(['cc'], keep='last')
 df1=cclist_for2['cc']
@@ -527,18 +536,26 @@ all2['year'] = all2['date2'].dt.strftime("%Y")
 all2['month'] = all2['date2'].dt.strftime("%m")
 all2['day'] = all2['date2'].dt.strftime("%d")
 
-
 for i in df2:
     str1 = ''.join([i])
     fileset=all2[all2['cc']==str1]    
     fileset['ma6 import_amt_mm'] = fileset['import_amt_mm'].rolling(window=6).mean()
     fileset['ma6 export_amt_mm'] = fileset['export_amt_mm'].rolling(window=6).mean()
     fileset['ma6 trade_balances'] = fileset['trade_balances'].rolling(window=6).mean()
+    fileset['ma6 balance of reserve'] = fileset['balance of reserve'].rolling(window=6).mean()
     fileset[['trade_balances']] = fileset[['trade_balances']].apply(pd.to_numeric)
     fileset[['ma6 import_amt_mm']] = fileset[['ma6 import_amt_mm']].apply(pd.to_numeric)
     fileset[['ma6 export_amt_mm']] = fileset[['ma6 export_amt_mm']].apply(pd.to_numeric)
+    fileset[['ma6 balance of reserve']] = fileset[['ma6 balance of reserve']].apply(pd.to_numeric)
+    fileset[['reserve_amt_mm']] = fileset[['reserve_amt_mm']].apply(pd.to_numeric)
+    fileset['reserve_amt_mm6'] = fileset['reserve_amt_mm'].shift(6)
+    fileset['reserve_amt_mm12'] = fileset['reserve_amt_mm'].shift(12)
+    fileset['pct change'] = fileset['reserve_amt_mm6'] / fileset['reserve_amt_mm12']
     test3=pd.DataFrame(fileset[fileset['date2'].notnull()])
     test4=test3.drop_duplicates(['date2'], keep='last')
+    graphdata=graphdata.append(fileset, ignore_index=False)
+    
+    #plot the graph which focuses on imports and exports
     fig = plt.figure(figsize=(20,15))
     #As soon as graph1 is initialized, everything below the block is included until another graph is initialized
     graph1 = fig.add_subplot(411)
@@ -547,6 +564,71 @@ for i in df2:
     graph1.plot(test4['date2'],test4['ma6 export_amt_mm'],'r-', linewidth=6.0, label='ma6 export_amt_mm')   
     plt.title(str1)
     graph1.legend(loc='best')
+    plt.show
+    fig = plt.figure(figsize=(20,15))
+    #As soon as graph1 is initialized, everything below the block is included until another graph is initialized
+    graph1 = fig.add_subplot(411)
+    graph1.tick_params('y', colors='b')
+    graph1.plot(test4['date2'],test4['ma6 balance of reserve'],'b-', linewidth=6.0, label='ma6 balance of reserve')   
+    plt.title(str1)
+    graph1.legend(loc='best')
+    plt.show
+    fig = plt.figure(figsize=(20,15))
+    #As soon as graph1 is initialized, everything below the block is included until another graph is initialized
+    graph1 = fig.add_subplot(411)
+    graph1.tick_params('y', colors='b')
+    graph1.plot(test4['date2'],test4['reserve_amt_mm'],'b-', linewidth=6.0, label='reserve_amt_mm')   
+    plt.title(str1)
+    graph1.legend(loc='best')
+    fig = plt.figure(figsize=(20,15))
+    #As soon as graph1 is initialized, everything below the block is included until another graph is initialized
+    graph1 = fig.add_subplot(411)
+    graph1.tick_params('y', colors='b')
+    graph1.plot(test4['date2'],test4['pct change'],'g-', linewidth=6.0, label='pct change 6/12')   
+    plt.title(str1)
+    graph1.legend(loc='best')
+
+
+##############################
+#Get aggregate reserve numbers
+##############################
+
+top5 = all2.groupby('ind')['reserve_amt_mm'].sum()
+top6=pd.DataFrame(top5)
+top6['reserve_amt_mm'] = top6[['reserve_amt_mm']].apply(pd.to_numeric)
+top6['reserve_amt_mm6'] = top6['reserve_amt_mm'].rolling(window=6).mean()
+top6['reserve_amt_mm12'] = top6['reserve_amt_mm'].rolling(window=12).mean()
+top6['reserve_amt_mm6'] = top6['reserve_amt_mm'].shift(6)
+top6['reserve_amt_mm12'] = top6['reserve_amt_mm'].shift(12)
+top6['pct change'] = top6['reserve_amt_mm6'] / top6['reserve_amt_mm12']
+
+top6['ind']=top6.index
+top6['ind']=pd.to_datetime(top6['ind'], errors='coerce')
+fig = plt.figure(figsize=(20,15))
+#As soon as graph1 is initialized, everything below the block is included until another graph is initialized
+graph1 = fig.add_subplot(411)
+graph1.tick_params('y', colors='b')
+graph1.plot.bar(top6['ind'],top6['pct change'], linewidth=6.0, label='reserves mom')  
+#graph1.plot(top6['ind'],top6['pct change'],'b-', linewidth=6.0, label='reserves mom')  
+plt.title(str1)
+graph1.legend(loc='best')
+plt.show
+
+y = top6['pct change']
+y = top6['reserve_amt_mm']
+#N = len(y)
+x = range(N)
+width = 1/1.5
+#plt.ylim(0.9, 1.2)
+plt.bar(x, y, width, color="blue")
+
+
+fig = plt.gcf()
+plot_url = py.plot_mpl(fig, filename='mpl-basic-bar')
+
+print top6
+
+print all2.dtypes
 
 
 
