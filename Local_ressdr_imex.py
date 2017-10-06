@@ -593,6 +593,9 @@ for i in df2:
 #Get aggregate reserve numbers
 ##############################
 
+#########################
+#This is a line line chart
+#########################
 top5 = all2.groupby('ind')['reserve_amt_mm'].sum()
 top6=pd.DataFrame(top5)
 top6['reserve_amt_mm'] = top6[['reserve_amt_mm']].apply(pd.to_numeric)
@@ -608,28 +611,55 @@ fig = plt.figure(figsize=(20,15))
 #As soon as graph1 is initialized, everything below the block is included until another graph is initialized
 graph1 = fig.add_subplot(411)
 graph1.tick_params('y', colors='b')
-graph1.plot.bar(top6['ind'],top6['pct change'], linewidth=6.0, label='reserves mom')  
-#graph1.plot(top6['ind'],top6['pct change'],'b-', linewidth=6.0, label='reserves mom')  
+graph1.plot(top6['ind'],top6['reserve_amt_mm6'],'b-', linewidth=6.0, label='reserves mom')  
+graph2 = graph1.twinx() #define graph2 from the twin of graph1
+graph2.tick_params('y', colors='r')
+plt.ylim(0.8, 1.2)
+graph2.plot(top6['ind'],top6['pct change'],'r-', linewidth=6.0, label='pct change')  
 plt.title(str1)
 graph1.legend(loc='best')
+graph2.legend(loc='best')
 plt.show
 
+#########################
+#This is a line bar chart
+#########################
+top5 = all2.groupby('ind')['reserve_amt_mm'].sum()
+top6=pd.DataFrame(top5)
+top6['reserve_amt_mm'] = top6[['reserve_amt_mm']].apply(pd.to_numeric)
+top6['reserve_amt_mm6'] = top6['reserve_amt_mm'].rolling(window=6).mean()
+top6['reserve_amt_mm12'] = top6['reserve_amt_mm'].rolling(window=12).mean()
+top6['reserve_amt_mm6'] = top6['reserve_amt_mm'].shift(6)
+top6['reserve_amt_mm12'] = top6['reserve_amt_mm'].shift(12)
+top6['pct change'] = top6['reserve_amt_mm6'] / top6['reserve_amt_mm12']
+
+top6['ind']=top6.index
+top6['ind']=pd.to_datetime(top6['ind'], errors='coerce')
+fig = plt.figure(figsize=(20,15))
+#As soon as graph1 is initialized, everything below the block is included until another graph is initialized
+graph1 = fig.add_subplot(411)
+graph1.tick_params('y', colors='b')
+graph1.plot(top6['ind'],top6['reserve_amt_mm6'],'b-', linewidth=6.0, label='reserves mom')  
+graph2 = graph1.twinx() #define graph2 from the twin of graph1
+graph2.tick_params('y', colors='r')
+plt.ylim(0.8, 1.2)
+graph2.bar(top6['ind'].values,top6['pct change'],156, linewidth=6.0, label='pct change')  
+plt.title(str1)
+graph1.legend(loc='best')
+graph2.legend(loc='best')
+plt.show
+
+##################################
+#This is a bar chart of pct change
+##################################
+
 y = top6['pct change']
-y = top6['reserve_amt_mm']
-#N = len(y)
+N = len(y)
 x = range(N)
-width = 1/1.5
-#plt.ylim(0.9, 1.2)
-plt.bar(x, y, width, color="blue")
 
-
-fig = plt.gcf()
-plot_url = py.plot_mpl(fig, filename='mpl-basic-bar')
-
-print top6
-
-print all2.dtypes
-
+width = 156
+plt.ylim(0.8, 1.2)
+plt.bar(top6['ind'].values, y, width, color="blue")
 
 
 
