@@ -500,6 +500,7 @@ imexdata_ressdr['export_amt_mm']=imexdata_ressdr['EXPORT MTH']/100000000
 imexdata_ressdr['trade_balances']=imexdata_ressdr['import_amt_mm']-imexdata_ressdr['export_amt_mm']
 imexdata_ressdr['balance of reserve']=imexdata_ressdr['trade_balances']/imexdata_ressdr['reserve_amt_mm']
 imexdata_ressdr['im_ex_ratio']=imexdata_ressdr['import_amt_mm']/imexdata_ressdr['export_amt_mm']  
+
 ###############################################
 #Only include data of the big reserve countries
 ############################################### 
@@ -535,6 +536,8 @@ dateplot2 = []
 all2['year'] = all2['date2'].dt.strftime("%Y")
 all2['month'] = all2['date2'].dt.strftime("%m")
 all2['day'] = all2['date2'].dt.strftime("%d")
+all3=all2[all2['reserve_amt_mm'].notnull()]
+
 
 for i in df2:
     str1 = ''.join([i])
@@ -548,13 +551,8 @@ for i in df2:
     fileset[['ma6 export_amt_mm']] = fileset[['ma6 export_amt_mm']].apply(pd.to_numeric)
     fileset[['ma6 balance of reserve']] = fileset[['ma6 balance of reserve']].apply(pd.to_numeric)
     fileset[['reserve_amt_mm']] = fileset[['reserve_amt_mm']].apply(pd.to_numeric)
-    fileset['reserve_amt_mm6'] = fileset['reserve_amt_mm'].shift(6)
-    fileset['reserve_amt_mm12'] = fileset['reserve_amt_mm'].shift(12)
-    fileset['pct change'] = fileset['reserve_amt_mm6'] / fileset['reserve_amt_mm12']
     test3=pd.DataFrame(fileset[fileset['date2'].notnull()])
     test4=test3.drop_duplicates(['date2'], keep='last')
-    graphdata=graphdata.append(fileset, ignore_index=False)
-    
     #plot the graph which focuses on imports and exports
     fig = plt.figure(figsize=(20,15))
     #As soon as graph1 is initialized, everything below the block is included until another graph is initialized
@@ -580,22 +578,50 @@ for i in df2:
     graph1.plot(test4['date2'],test4['reserve_amt_mm'],'b-', linewidth=6.0, label='reserve_amt_mm')   
     plt.title(str1)
     graph1.legend(loc='best')
-    fig = plt.figure(figsize=(20,15))
-    #As soon as graph1 is initialized, everything below the block is included until another graph is initialized
-    graph1 = fig.add_subplot(411)
-    graph1.tick_params('y', colors='b')
-    graph1.plot(test4['date2'],test4['pct change'],'g-', linewidth=6.0, label='pct change 6/12')   
-    plt.title(str1)
-    graph1.legend(loc='best')
-
 
 ##############################
 #Get aggregate reserve numbers
-##############################
+#############################
 
-#########################
-#This is a line line chart
-#########################
+top5 = all3.groupby('ind')['reserve_amt_mm','cc cnt'].sum()
+top6=pd.DataFrame(top5)
+top6['reserve_amt_mm'] = top6[['reserve_amt_mm']].apply(pd.to_numeric)
+top6['reserve_amt_mm6'] = top6['reserve_amt_mm'].rolling(window=6).mean()
+top6['reserve_amt_mm12'] = top6['reserve_amt_mm'].rolling(window=12).mean()
+top6['reserve_amt_mm6'] = top6['reserve_amt_mm'].shift(6)
+top6['reserve_amt_mm12'] = top6['reserve_amt_mm'].shift(12)
+top6['pct change'] = top6['reserve_amt_mm6'] / top6['reserve_amt_mm12']
+#top6.truncate(after='2012-01-01') #before
+top7=top6.truncate(before='2012-01-01') 
+
+top6['ind']=top6.index
+top6['ind']=pd.to_datetime(top6['ind'], errors='coerce')
+fig = plt.figure(figsize=(20,15))
+#As soon as graph1 is initialized, everything below the block is included until another graph is initialized
+graph1 = fig.add_subplot(411)
+graph1.tick_params('y', colors='b')
+graph1.plot(top6['ind'],top6['reserve_amt_mm6'],'b-', linewidth=6.0, label='reserves mom')  
+graph2 = graph1.twinx() #define graph2 from the twin of graph1
+graph2.tick_params('y', colors='r')
+plt.ylim(0.8, 1.5)
+graph2.bar(top6['ind'].values,top6['pct change'],365, linewidth=6.0, label='pct change')  
+plt.title(str1)
+graph1.legend(loc='best')
+graph2.legend(loc='best')
+plt.show
+
+y = top6['pct change']
+N = len(y)
+x = range(N)
+
+width = 156
+plt.ylim(0.8, 1.2)
+plt.bar(top6['ind'].values, y, width, color="blue")
+
+################
+#Line Line chart
+###############
+
 top5 = all2.groupby('ind')['reserve_amt_mm'].sum()
 top6=pd.DataFrame(top5)
 top6['reserve_amt_mm'] = top6[['reserve_amt_mm']].apply(pd.to_numeric)
@@ -621,45 +647,7 @@ graph1.legend(loc='best')
 graph2.legend(loc='best')
 plt.show
 
-#########################
-#This is a line bar chart
-#########################
-top5 = all2.groupby('ind')['reserve_amt_mm'].sum()
-top6=pd.DataFrame(top5)
-top6['reserve_amt_mm'] = top6[['reserve_amt_mm']].apply(pd.to_numeric)
-top6['reserve_amt_mm6'] = top6['reserve_amt_mm'].rolling(window=6).mean()
-top6['reserve_amt_mm12'] = top6['reserve_amt_mm'].rolling(window=12).mean()
-top6['reserve_amt_mm6'] = top6['reserve_amt_mm'].shift(6)
-top6['reserve_amt_mm12'] = top6['reserve_amt_mm'].shift(12)
-top6['pct change'] = top6['reserve_amt_mm6'] / top6['reserve_amt_mm12']
 
-top6['ind']=top6.index
-top6['ind']=pd.to_datetime(top6['ind'], errors='coerce')
-fig = plt.figure(figsize=(20,15))
-#As soon as graph1 is initialized, everything below the block is included until another graph is initialized
-graph1 = fig.add_subplot(411)
-graph1.tick_params('y', colors='b')
-graph1.plot(top6['ind'],top6['reserve_amt_mm6'],'b-', linewidth=6.0, label='reserves mom')  
-graph2 = graph1.twinx() #define graph2 from the twin of graph1
-graph2.tick_params('y', colors='r')
-plt.ylim(0.8, 1.2)
-graph2.bar(top6['ind'].values,top6['pct change'],156, linewidth=6.0, label='pct change')  
-plt.title(str1)
-graph1.legend(loc='best')
-graph2.legend(loc='best')
-plt.show
-
-##################################
-#This is a bar chart of pct change
-##################################
-
-y = top6['pct change']
-N = len(y)
-x = range(N)
-
-width = 156
-plt.ylim(0.8, 1.2)
-plt.bar(top6['ind'].values, y, width, color="blue")
 
 
 
