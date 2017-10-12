@@ -122,7 +122,7 @@ treas10['ind']=pd.to_datetime(treas10['date'], errors='coerce')
 fedassets['fedassets']=pd.to_numeric(fedassets['value'], errors='coerce')
 fedassets['ind']=pd.to_datetime(fedassets['date'], errors='coerce')
 fedbudget['fedbudget']=pd.to_numeric(fedbudget['value'], errors='coerce')
-fedassets['ind']=pd.to_datetime(fedbudget['date'], errors='coerce')
+fedbudget['ind']=pd.to_datetime(fedbudget['date'], errors='coerce')
 
 libor3x=libor3[['libor3mth','ind']]
 libor12x=libor12[['libor12mth','ind']]
