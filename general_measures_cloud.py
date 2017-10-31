@@ -208,9 +208,16 @@ df19=df18.merge(balticdryindex, on='ind', how='outer')
 df20=df19.merge(balticcapesizeindex, on='ind', how='outer') 
 df21=df20.merge(balticsupramexindex, on='ind', how='outer') 
 df22=df21.merge(balticpanamaxindex, on='ind', how='outer') 
-daily_file=df22.merge(oil, on='ind', how='outer')
+daily_filex=df22.merge(oil, on='ind', how='outer')
+###########################
 #Generate a daily timestamp
-daily_file['daily date']=daily_file['ind']
+###########################
+daily_filex['daily date']=daily_filex['ind']
+############################
+#Get rid of date duplicates#
+############################
+daily_file=daily_filex.drop_duplicates(['ind'], keep='last')
+
 
 ##################################
 #Put the dataset back into storage
@@ -288,7 +295,7 @@ daily_file['Daily Share Volume daycnt'] = np.where(daily_file['Daily Share Volum
 daily_file['daycnt'] = 1
 
 dailymth = daily_file.groupby(['monthyear'], as_index=False)['daycnt','Gold daycnt','Silver daycnt','Oil daycnt','Copper daycnt','Paladium daycnt','Platinum daycnt','Daily Share Volume daycnt',\
-'libor3mth daycnt','libor12mth daycnt','fedassets daycnt','treas10mth daycnt','libor3mth','libor12mth','fedassets','treas10mth','balticdryindex Index daycnt',\
+'libor3mth daycnt','libor12mth daycnt','treas10mth daycnt','libor3mth','libor12mth','treas10mth','balticdryindex Index daycnt',\
 'balticcapesizeindex Index daycnt','balticsupramexindex Index daycnt','balticpanamaxindex Index daycnt','balticcapesizeindex Index daycnt','balticsupramexindex Index daycnt','balticpanamaxindex Index daycnt','Total Net Asset Value Tonnes in the Trust daycnt',\
 'Gold USD (AM)','Gold USD (PM)','Gold GBP (AM)','Gold GBP (PM)','Gold EURO (AM)','Gold EURO (PM)','Copper USD','Silver USD','Silver GBP','Silver EURO','Oil USD','Total Net Asset Value Tonnes in the Trust','balticdryindex Index','Platinum USD (AM)','Paladium USD (AM)','Daily Share Volume'].sum()
 
@@ -306,7 +313,7 @@ monthly_file=mf4.merge(uranium, on='monthyear', how='outer')
 #######################
 #Monthly File Measures#
 #######################
-
+monthly_file['gold price']=monthly_file['Gold USD (AM)']/monthly_file['Gold daycnt']
 
 
 
