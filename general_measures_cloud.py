@@ -320,18 +320,27 @@ monthly_file['copper price']=monthly_file['Copper USD']/monthly_file['Copper day
 monthly_file['paladium price']=monthly_file['Paladium USD (AM)']/monthly_file['Paladium daycnt']
 monthly_file['platinum price']=monthly_file['Platinum USD (AM)']/monthly_file['Platinum daycnt']
 monthly_file['gld daily share volume']=monthly_file['Daily Share Volume']/monthly_file['Daily Share Volume daycnt']
+monthly_file['libor3mth value']=monthly_file['libor3mth']/monthly_file['libor3mth daycnt']
+monthly_file['libor12mth value']=monthly_file['libor12mth']/monthly_file['libor12mth daycnt']
+monthly_file['treas10mth value']=monthly_file['treas10mth']/monthly_file['treas10mth daycnt']
+monthly_file['balticdryindex Index']=monthly_file['balticdryindex Index']/monthly_file['balticdryindex Index daycnt']
+#monthly_file['balticcapesizeindex Index value']=monthly_file['balticcapesizeindex Index']/monthly_file['balticcapesizeindex Index daycnt']
+#monthly_file['balticsupramexindex Index value']=monthly_file['balticsupramexindex Index']/monthly_file['balticsupramexindex Index daycnt']
+#monthly_file['balticpanamaxindex Index value']=monthly_file['libor3mth']/monthly_file['balticpanamaxindex Index daycnt']
+monthly_file['Total Net Asset Value Tonnes in the Trust value']=monthly_file['Total Net Asset Value Tonnes in the Trust']/monthly_file['Total Net Asset Value Tonnes in the Trust daycnt']
 
 
 monthly_file['gold oil ratio']=monthly_file['gold price']/monthly_file['oil price']
 monthly_file['gold silver ratio']=monthly_file['gold price']/monthly_file['silver price']
 monthly_file['gold copper ratio']=monthly_file['gold price']/monthly_file['copper price']
 
-daily_file['Gold Silver Ratio']=daily_file['Gold USD (PM)']/daily_file['Silver USD']
-daily_file['Gold Oil Ratio']=daily_file['Gold USD (PM)']/daily_file['Oil USD']
-daily_file['Silver Oil Ratio']=daily_file['Silver USD']/daily_file['Oil USD']
-
 monthly_file['ma6 US Receipts'] = monthly_file['US Receipts'].rolling(window=6).mean()
 monthly_file['ma6 ISM Diffusion Index'] = monthly_file['ISM Diffusion Index'].rolling(window=6).mean()
+
+############################
+#Get rid of date duplicates#
+############################
+monthly_filex=monthly_file.drop_duplicates(['monthyear'], keep='last')
 
 
 
@@ -341,7 +350,7 @@ monthly_file['ma6 ISM Diffusion Index'] = monthly_file['ISM Diffusion Index'].ro
 from google.cloud import storage
 client = storage.Client()
 bucket2 = client.get_bucket('macrofiles')
-df_out = pd.DataFrame(monthly_file)
+df_out = pd.DataFrame(monthly_filex)
 df_out.to_csv('monthly_file.csv', index=False)
 blob2 = bucket2.blob('monthly_file.csv')
 blob2.upload_from_filename('monthly_file.csv')
