@@ -17,8 +17,6 @@ if sys.version_info[0] < 3:
 else:
     from io import StringIO as stio
     
-
-
 #import matplotlib
 #import matplotlib.pyplot as plt
 
@@ -202,16 +200,28 @@ df11=df10.merge(fxusdche, on='ind', how='outer')
 df12=df11.merge(fxusdeur, on='ind', how='outer')
 df13=df12.merge(libor3x, on='ind', how='outer')
 df14=df13.merge(libor12x, on='ind', how='outer')
-df15=df14.merge(fedassets, on='ind', how='outer')
-df16=df15.merge(treas10x, on='ind', how='outer')
+#df15=df14.merge(fedassets, on='ind', how='outer')
+df16=df14.merge(treas10x, on='ind', how='outer')
 df17=df16.merge(dfgld, on='ind', how='outer')
 df18=df17.merge(copper, on='ind', how='outer') 
 df19=df18.merge(balticdryindex, on='ind', how='outer') 
-daily_file=df19.merge(oil, on='ind', how='outer')
+df20=df19.merge(balticcapesizeindex, on='ind', how='outer') 
+df21=df20.merge(balticsupramexindex, on='ind', how='outer') 
+df22=df21.merge(balticpanamaxindex, on='ind', how='outer') 
+daily_file=df22.merge(oil, on='ind', how='outer')
 #Generate a daily timestamp
 daily_file['daily date']=daily_file['ind']
 
-
+##################################
+#Put the dataset back into storage
+##################################
+from google.cloud import storage
+client = storage.Client()
+bucket2 = client.get_bucket('macrofiles')
+df_out = pd.DataFrame(daily_file)
+df_out.to_csv('daily_file.csv', index=False)
+blob2 = bucket2.blob('daily_file.csv')
+blob2.upload_from_filename('daily_file.csv')
 
 
 #################################
@@ -250,59 +260,19 @@ ustaxx = ustax
 ustaxx.__delitem__('ind')
 shillerx = shiller
 shillerx.__delitem__('ind')
-#balticdryindexx = balticdryindex
-#balticdryindexx.__delitem__('ind')
-balticcapesizeindexx = balticcapesizeindex
-balticcapesizeindexx.__delitem__('ind')
-balticsupramexindexx = balticsupramexindex
-balticsupramexindexx.__delitem__('ind')
-balticpanamaxindexx = balticpanamaxindex
-balticpanamaxindexx.__delitem__('ind')
 trade_Weighted_Indexx = trade_Weighted_Index
 trade_Weighted_Indexx.__delitem__('ind')
 fed_funds_ratex = fed_funds_rate
 fed_funds_ratex.__delitem__('ind')
-########################################
-#Create the monthly files for daily data
-########################################
-daily_file['monthyear'] = daily_file['ind'].dt.strftime("%Y,%m")
-mf=ustaxx.merge(fed_funds_ratex, on='monthyear', how='outer')
-mf1=mf.merge(ismx, on='monthyear', how='outer')
-mf2=mf1.merge(shillerx, on='monthyear', how='outer')
-#mf3=mf2.merge(balticdryindexx, on='monthyear', how='outer')
-mf4=mf2.merge(trade_Weighted_Indexx, on='monthyear', how='outer')
-mf5=mf4.merge(uraniumx, on='monthyear', how='outer')
-#mf6=mf5.merge(balticcapesizeindexx, on='monthyear', how='outer')
-#mf7=mf6.merge(balticsupramexindexx, on='monthyear', how='outer')
-#mf8=mf7.merge(balticpanamaxindexx, on='monthyear', how='outer')
-daily_monthly_file=mf5.merge(daily_file, on='monthyear', how='outer')
 
-##################################
-#Put the dataset back into storage
-##################################
-from google.cloud import storage
-client = storage.Client()
-bucket2 = client.get_bucket('macrofiles')
-df_out = pd.DataFrame(daily_monthly_file)
-df_out.to_csv('daily_monthly_file.csv', index=False)
-blob2 = bucket2.blob('daily_monthly_file.csv')
-blob2.upload_from_filename('daily_monthly_file.csv')
-
-
-
-
-#mf4=mf3.merge(balticcapesizeindex, on='monthyear', how='outer')
-#mf5=mf4.merge(balticsupramexindex, on='monthyear', how='outer')
-#mf6=mf5.merge(balticpanamaxindex, on='monthyear', how='outer')
-#mf7=mf6.merge(trade_Weigted_Index, on='monthyear', how='outer')
-#mf8=mf7.merge(fed_funds_rate, on='monthyear', how='outer')
-#daily_monthly_file=mf8.merge(uranium, on='monthyear', how='outer')
 
 #################################################
 #Create daycnts so the averages can be calculated
 #################################################
 daily_file['Gold daycnt'] = np.where(daily_file['Gold USD (AM)']>0, 1, 0)
 daily_file['Silver daycnt'] = np.where(daily_file['Silver USD']>0, 1, 0)
+daily_file['Paladium daycnt'] = np.where(daily_file['Paladium USD (AM)']>0, 1, 0)
+daily_file['Platinum daycnt'] = np.where(daily_file['Platinum USD (AM)']>0, 1, 0)
 daily_file['Oil daycnt'] = np.where(daily_file['Oil USD']>0, 1, 0)
 daily_file['Copper daycnt'] = np.where(daily_file['Copper USD']>0, 1, 0)
 daily_file['libor3mth daycnt'] = np.where(daily_file['libor3mth']>0, 1, 0)
@@ -310,12 +280,18 @@ daily_file['libor12mth daycnt'] = np.where(daily_file['libor12mth']>0, 1, 0)
 daily_file['fedassets daycnt'] = np.where(daily_file['fedassets']>0, 1, 0)
 daily_file['treas10mth daycnt'] = np.where(daily_file['treas10mth']>0, 1, 0)
 daily_file['balticdryindex Index daycnt'] = np.where(daily_file['balticdryindex Index']>0, 1, 0)
+daily_file['balticcapesizeindex Index daycnt'] = np.where(daily_file['balticcapesizeindex Index']>0, 1, 0)
+daily_file['balticsupramexindex Index daycnt'] = np.where(daily_file['balticsupramexindex Index']>0, 1, 0)
+daily_file['balticpanamaxindex Index daycnt'] = np.where(daily_file['balticpanamaxindex Index']>0, 1, 0)
 daily_file['Total Net Asset Value Tonnes in the Trust daycnt'] = np.where(daily_file['Total Net Asset Value Tonnes in the Trust']>0, 1, 0)
+daily_file['Daily Share Volume daycnt'] = np.where(daily_file['Daily Share Volume']>0, 1, 0)
 daily_file['daycnt'] = 1
-dailymth = daily_file.groupby(['monthyear'], as_index=False)['daycnt','Gold daycnt','Silver daycnt','Oil daycnt','Copper daycnt',\
+
+dailymth = daily_file.groupby(['monthyear'], as_index=False)['daycnt','Gold daycnt','Silver daycnt','Oil daycnt','Copper daycnt','Paladium daycnt','Platinum daycnt','Daily Share Volume daycnt',\
 'libor3mth daycnt','libor12mth daycnt','fedassets daycnt','treas10mth daycnt','libor3mth','libor12mth','fedassets','treas10mth','balticdryindex Index daycnt',\
-'Total Net Asset Value Tonnes in the Trust daycnt','Gold USD (AM)','Gold USD (PM)','Gold GBP (AM)','Gold GBP (PM)','Gold EURO (AM)','Gold EURO (PM)','Copper USD',\
-'Silver USD','Silver GBP','Silver EURO','Oil USD','Total Net Asset Value Tonnes in the Trust','balticdryindex Index'].sum()
+'balticcapesizeindex Index daycnt','balticsupramexindex Index daycnt','balticpanamaxindex Index daycnt','balticcapesizeindex Index daycnt','balticsupramexindex Index daycnt','balticpanamaxindex Index daycnt','Total Net Asset Value Tonnes in the Trust daycnt',\
+'Gold USD (AM)','Gold USD (PM)','Gold GBP (AM)','Gold GBP (PM)','Gold EURO (AM)','Gold EURO (PM)','Copper USD','Silver USD','Silver GBP','Silver EURO','Oil USD','Total Net Asset Value Tonnes in the Trust','balticdryindex Index','Platinum USD (AM)','Paladium USD (AM)','Daily Share Volume'].sum()
+
 
 ################################
 #Merge the monthly data together
@@ -323,13 +299,17 @@ dailymth = daily_file.groupby(['monthyear'], as_index=False)['daycnt','Gold dayc
 mf=ustax.merge(dailymth, on='monthyear', how='outer')
 mf1=mf.merge(ism, on='monthyear', how='outer')
 mf2=mf1.merge(shiller, on='monthyear', how='outer')
-#mf3=mf2.merge(balticdryindex, on='monthyear', how='outer')
-#mf4=mf3.merge(balticcapesizeindex, on='monthyear', how='outer')
-#mf5=mf4.merge(balticsupramexindex, on='monthyear', how='outer')
-#mf6=mf5.merge(balticpanamaxindex, on='monthyear', how='outer')
-mf7=mf2.merge(trade_Weighted_Index, on='monthyear', how='outer')
-mf8=mf7.merge(fed_funds_rate, on='monthyear', how='outer')
-monthly_file=mf8.merge(uranium, on='monthyear', how='outer')
+mf3=mf2.merge(trade_Weighted_Index, on='monthyear', how='outer')
+mf4=mf3.merge(fed_funds_rate, on='monthyear', how='outer')
+monthly_file=mf4.merge(uranium, on='monthyear', how='outer')
+
+#######################
+#Monthly File Measures#
+#######################
+
+
+
+
 
 ##################################
 #Put the dataset back into storage
@@ -341,6 +321,8 @@ df_out = pd.DataFrame(monthly_file)
 df_out.to_csv('monthly_file.csv', index=False)
 blob2 = bucket2.blob('monthly_file.csv')
 blob2.upload_from_filename('monthly_file.csv')
+
+
 
 
 ############################
