@@ -314,7 +314,24 @@ monthly_file=mf4.merge(uranium, on='monthyear', how='outer')
 #Monthly File Measures#
 #######################
 monthly_file['gold price']=monthly_file['Gold USD (AM)']/monthly_file['Gold daycnt']
+monthly_file['silver price']=monthly_file['Silver USD']/monthly_file['Silver daycnt']
+monthly_file['oil price']=monthly_file['Oil USD']/monthly_file['Oil daycnt']
+monthly_file['copper price']=monthly_file['Copper USD']/monthly_file['Copper daycnt']
+monthly_file['paladium price']=monthly_file['Paladium USD (AM)']/monthly_file['Paladium daycnt']
+monthly_file['platinum price']=monthly_file['Platinum USD (AM)']/monthly_file['Platinum daycnt']
+monthly_file['gld daily share volume']=monthly_file['Daily Share Volume']/monthly_file['Daily Share Volume daycnt']
 
+
+monthly_file['gold oil ratio']=monthly_file['gold price']/monthly_file['oil price']
+monthly_file['gold silver ratio']=monthly_file['gold price']/monthly_file['silver price']
+monthly_file['gold copper ratio']=monthly_file['gold price']/monthly_file['copper price']
+
+daily_file['Gold Silver Ratio']=daily_file['Gold USD (PM)']/daily_file['Silver USD']
+daily_file['Gold Oil Ratio']=daily_file['Gold USD (PM)']/daily_file['Oil USD']
+daily_file['Silver Oil Ratio']=daily_file['Silver USD']/daily_file['Oil USD']
+
+monthly_file['ma6 US Receipts'] = monthly_file['US Receipts'].rolling(window=6).mean()
+monthly_file['ma6 ISM Diffusion Index'] = monthly_file['ISM Diffusion Index'].rolling(window=6).mean()
 
 
 
