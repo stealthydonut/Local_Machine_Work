@@ -341,9 +341,15 @@ monthly_file['ma6 ISM Diffusion Index'] = monthly_file['ISM Diffusion Index'].ro
 #Get rid of date duplicates#
 ############################
 monthly_filex=monthly_file.drop_duplicates(['monthyear'], keep='last')
-
-
-
+######################
+#Create date variable#
+######################
+monthly_filex['day']='01'
+monthly_filex['year'] = monthly_filex['monthyear'].str[:4]
+monthly_filex['month'] = monthly_filex['monthyear'].str[5:7]
+monthly_filex['slash']='/'
+monthly_filex['period']=monthly_filex['month']+monthly_filex['slash']+monthly_filex['day']+monthly_filex['slash']+monthly_filex['year']
+monthly_filex['ind']=pd.to_datetime(monthly_filex['period'], errors='coerce')
 ##################################
 #Put the dataset back into storage
 ##################################
