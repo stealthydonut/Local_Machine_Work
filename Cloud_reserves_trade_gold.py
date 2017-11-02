@@ -613,9 +613,7 @@ quarter_data['qsdr_amt_mm']=quarter_data['sdr_amt_mm']/quarter_data['cnt']
 quarter_data['qimport_amt_mm']=quarter_data['import_amt_mm']/quarter_data['cnt']
 quarter_data['qexport_amt_mm']=quarter_data['export_amt_mm']/quarter_data['cnt']
 
-
-
-######################
+#####################
 #Build Graph Measures#
 ######################
 quarter_data['y'] = quarter_data['merge'].str[3:]
