@@ -31,8 +31,8 @@ exports = []
 rejects = []
 imports = []
 rejects2 = []
-bopg = []
-bopgs = []
+bop = []
+bopg_gold = pd.DataFrame()
 
 for year, month in itertools.product(year_list, month_list):
     url = '%s%s-%s' % (base, year, month)
@@ -54,6 +54,9 @@ for year, month in itertools.product(year_list, month_list):
     else:
         rejects2.append((int(year), int(month)))
 
+#########################        
+#BOP - Services and Goods        
+#########################        
 for i in year_list:
     year2=''.join(i) 
     url=base3
@@ -62,9 +65,32 @@ for i in year_list:
     if r.text:
         r = ast.literal_eval(r.text)
         df = pd.DataFrame(r[2:], columns=r[0])
-        bopgs.append(df)
+        bop.append(df)
     else:
-        rejects2.append(int(i))    
+        rejects2.append(int(i))
+
+bop = pd.concat(bop).reset_index().drop('index', axis=1)
+bop.columns=['VALUE','TYPE','TIME_ID','CAT','FLAG','YEAR']  
+bopg=bop[bop['CAT']=='BOPG']
+
+typelist=['BOPG','BOPGS']
+typelist2=['EXP','IMP','BAL']
+
+
+for i in typelist:
+    TYP2=''.join(i)
+    test=bop[bop['CAT']==TYP2]
+    for b in typelist2:
+        TYP=''.join(b)
+        testx=pd.DataFrame(test[test['TYPE']==TYP])
+        testx['EXP']=0
+        testx['IMP']=0
+        testx['BAL']=0
+        testx['{}'.format(b)]=testx['VALUE']    
+        if bopg_gold.empty:
+            bopg_gold = pd.DataFrame(testx)
+        else:
+            bopg_gold = bopg_gold.append(pd.DataFrame(testx))  
         
 
 exports = pd.concat(exports).reset_index().drop('index', axis=1)
