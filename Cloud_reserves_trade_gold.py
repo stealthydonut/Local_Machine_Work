@@ -23,6 +23,7 @@ else:
 
 base = "https://api.census.gov/data/timeseries/intltrade/exports/hs?get=CTY_CODE,CTY_NAME,ALL_VAL_MO,ALL_VAL_YR&time="
 base2 = "https://api.census.gov/data/timeseries/intltrade/imports/enduse?get=CTY_CODE,CTY_NAME,GEN_VAL_MO,GEN_VAL_YR&time="
+base3 = "https://api.census.gov/data/timeseries/eits/ftd?get=cell_value,data_type_code,time_slot_id,category_code,seasonally_adj&time="
 year_list = ['2013','2014','2015','2016','2017']
 month_list = ['01','02','03','04','05','06','07','08','09','10','11','12']
 
@@ -30,6 +31,8 @@ exports = []
 rejects = []
 imports = []
 rejects2 = []
+bopg = []
+bopgs = []
 
 for year, month in itertools.product(year_list, month_list):
     url = '%s%s-%s' % (base, year, month)
@@ -51,6 +54,18 @@ for year, month in itertools.product(year_list, month_list):
     else:
         rejects2.append((int(year), int(month)))
 
+for i in year_list:
+    year2=''.join(i) 
+    url=base3
+    url2=url+year2
+    r = requests.get(url2, headers={'User-agent': 'your bot 0.1'})
+    if r.text:
+        r = ast.literal_eval(r.text)
+        df = pd.DataFrame(r[2:], columns=r[0])
+        bopgs.append(df)
+    else:
+        rejects2.append(int(i))    
+        
 
 exports = pd.concat(exports).reset_index().drop('index', axis=1)
 exports.columns=['CTY_CODE','CTY_NAME','EXPORT MTH','EXPORT YR','time']
@@ -80,6 +95,13 @@ imexdata=pd.merge(imports, exports, left_on=('fred_key','CTY_NAME2','time2'), ri
 imexdata_gold=imexdata[imexdata['fred_key']>0]
 imexdata_gold['date2']=pd.to_datetime(imexdata_gold['time2'], errors='coerce')
 imexdata_gold['monthyear'] = imexdata_gold['date2'].dt.strftime("%Y,%m")
+
+#####################################
+#Balace of Payments and Services File
+#####################################
+
+bopgs = pd.concat(bopgs).reset_index().drop('index', axis=1)
+bopgs.columns=['VALUE','TYPE','TIME_ID','CAT','FLAG','YEAR']    
 
 
 
