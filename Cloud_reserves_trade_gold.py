@@ -32,7 +32,7 @@ rejects = []
 imports = []
 rejects2 = []
 bop = []
-bopg_gold = pd.DataFrame()
+bop_gold = pd.DataFrame()
 
 for year, month in itertools.product(year_list, month_list):
     url = '%s%s-%s' % (base, year, month)
@@ -54,10 +54,6 @@ for year, month in itertools.product(year_list, month_list):
     else:
         rejects2.append((int(year), int(month)))
 
-
-
-
-        
 
 exports = pd.concat(exports).reset_index().drop('index', axis=1)
 exports.columns=['CTY_CODE','CTY_NAME','EXPORT MTH','EXPORT YR','time']
@@ -103,10 +99,6 @@ for i in year_list:
     else:
         rejects2.append(int(i))
 
-bop = pd.concat(bop).reset_index().drop('index', axis=1)
-bop.columns=['VALUE','TYPE','TIME_ID','CAT','FLAG','YEAR']  
-bopg=bop[bop['CAT']=='BOPG']
-
 typelist=['BOPG','BOPGS']
 typelist2=['EXP','IMP','BAL']
 
@@ -121,18 +113,18 @@ for i in typelist:
         testx['IMP']=0
         testx['BAL']=0
         testx['{}'.format(b)]=testx['VALUE']    
-        if bopg_gold.empty:
-            bopg_gold = pd.DataFrame(testx)
+        if bop_gold.empty:
+            bop_gold = pd.DataFrame(testx)
         else:
-            bopg_gold = bopg_gold.append(pd.DataFrame(testx))  
+            bop_gold = bop_gold.append(pd.DataFrame(testx))
 
 ##################
 #Develop variables            
-##################            
-bopg=bopg_gold[bopg_gold['CAT']=='BOPG']
-bopg['bopg_exp']=bopg['EXP']
-bopg['bopg_imp']=bopg['IMP']
-bopg['bopg_bal']=bopg['BAL']
+##################           
+bopg=bop_gold[bop_gold['CAT']=='BOPG']
+bopg['bopg_exp']=pd.to_numeric(bopg['EXP'], errors='coerce')
+bopg['bopg_imp']=pd.to_numeric(bopg['IMP'], errors='coerce')
+bopg['bopg_bal']=pd.to_numeric(bopg['BAL'], errors='coerce')
 bopg.__delitem__('VALUE')
 bopg.__delitem__('TYPE')
 bopg.__delitem__('TIME_ID')
@@ -140,11 +132,20 @@ bopg.__delitem__('CAT')
 bopg.__delitem__('FLAG')
 bopg.__delitem__('EXP')
 bopg.__delitem__('IMP')
-bopg.__delitem__('BAL') 
-bopgs=bopg_gold[bopg_gold['CAT']=='BOPGS']
-bopgs['bopgs_exp']=bopgs['EXP']
-bopgs['bopgs_imp']=bopgs['IMP']
-bopgs['bopgs_bal']=bopgs['BAL']
+bopg.__delitem__('BAL')
+bopg_exp=bopg[['YEAR','bopg_exp']]
+bopg_imp=bopg[['YEAR','bopg_imp']]
+bopg_bal=bopg[['YEAR','bopg_bal']]
+bopg_exp1=bopg_exp[bopg_exp['bopg_exp']>0]
+bopg_imp1=bopg_imp[bopg_imp['bopg_imp']>0]
+bopg_bal1=bopg_bal[bopg_bal['bopg_bal']<0]
+bopg1=pd.merge(bopg_exp1, bopg_imp1, left_on=('YEAR'), right_on=('YEAR'))
+bopg2=pd.merge(bopg1, bopg_bal1, left_on=('YEAR'), right_on=('YEAR'))
+bopg_gold=bopg2.drop_duplicates(['YEAR'], keep='last')
+bopgs=bop_gold[bop_gold['CAT']=='BOPGS']
+bopgs['bopgs_exp']=pd.to_numeric(bopgs['EXP'], errors='coerce')
+bopgs['bopgs_imp']=pd.to_numeric(bopgs['IMP'], errors='coerce')
+bopgs['bopgs_bal']=pd.to_numeric(bopgs['BAL'], errors='coerce')
 bopgs.__delitem__('VALUE')
 bopgs.__delitem__('TYPE')
 bopgs.__delitem__('TIME_ID')
@@ -152,8 +153,18 @@ bopgs.__delitem__('CAT')
 bopgs.__delitem__('FLAG')
 bopgs.__delitem__('EXP')
 bopgs.__delitem__('IMP')
-bopgs.__delitem__('BAL') 
-
+bopgs.__delitem__('BAL')
+bopgs_exp=bopgs[['YEAR','bopgs_exp']]
+bopgs_imp=bopgs[['YEAR','bopgs_imp']]
+bopgs_bal=bopgs[['YEAR','bopgs_bal']]
+bopgs_exp1=bopgs_exp[bopgs_exp['bopgs_exp']>0]
+bopgs_imp1=bopgs_imp[bopgs_imp['bopgs_imp']>0]
+bopgs_bal1=bopgs_bal[bopgs_bal['bopgs_bal']<0]
+bopgs1=pd.merge(bopgs_exp1, bopgs_imp1, left_on=('YEAR'), right_on=('YEAR'))
+bopgs2=pd.merge(bopgs1, bopgs_bal1, left_on=('YEAR'), right_on=('YEAR'))
+bopgs_gold=bopgs2.drop_duplicates(['YEAR'], keep='last')
+#Get the balance of payments
+bopfile=pd.merge(bopg_gold, bopgs_gold, left_on=('YEAR'), right_on=('YEAR'))
 
 boplist=[('CA','Canada','1220','NAFTA'),
 ('MX','Mexico','2010'),
