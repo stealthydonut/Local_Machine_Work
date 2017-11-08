@@ -209,6 +209,7 @@ details.__delitem__('YEAR')
 ######################################################
 bigdata = bopfile.append(details, ignore_index=True)
 bop_gold_gs=bigdata.drop_duplicates(['ind'], keep='last')
+bop_gold_gs['cc']='US'
 
 
 boplist=[('CA','Canada','1220','NAFTA'),
@@ -641,6 +642,26 @@ imexdata_gold2 = imexdata_gold[['year','fred_key','CTYNAME','IMPORT MTH','EXPORT
 imexdata_merge = histdata2.append(imexdata_gold2, ignore_index=True)
 imexdata_merge2=imexdata_merge.drop_duplicates(['fred_key','monthyear'], keep='last')
 imexdata_ressdr=pd.merge(ressdr, imexdata_merge2, how='outer', left_on=('fred_key','monthyear'), right_on=('fred_key','monthyear'))
+###################################################################################
+#Merge the balance of payments goods and services file with the imports and exports
+###################################################################################
+#For US there is no date because date is from reserve data and US has no US reserves
+#Generate Date
+imexdata_ressdr['day']='01'
+imexdata_ressdr['year2'] = imexdata_ressdr['monthyear'].astype(str)
+imexdata_ressdr['year3'] = imexdata_ressdr['year2'].str[:4]
+imexdata_ressdr['month'] = imexdata_ressdr['year2'].str[5:]
+imexdata_ressdr['slash']='/'
+imexdata_ressdr['period']=imexdata_ressdr['month']+imexdata_ressdr['slash']+imexdata_ressdr['day']+imexdata_ressdr['slash']+imexdata_ressdr['year3']
+imexdata_ressdr['ind']=pd.to_datetime(imexdata_ressdr['period'], errors='coerce')
+imexdata_ressdr.__delitem__('day')
+imexdata_ressdr.__delitem__('year2')
+imexdata_ressdr.__delitem__('year3')
+imexdata_ressdr.__delitem__('slash')
+imexdata_ressdr.__delitem__('month')
+imexdata_ressdr.__delitem__('period')
+imexdata_ressdr_bop=pd.merge(imexdata_ressdr, bop_gold_gs, how='outer', left_on=('ind','cc'), right_on=('ind','cc'))
+
 ############################################
 #Begin to develop the gold file
 ############################################
@@ -693,20 +714,20 @@ country_list = pd.DataFrame.from_records(boplist, columns=labels)
 country_list['country']=country_list['country2'].str.upper()
 bigdata2=pd.merge(country_list, bigdata, left_on='country', right_on='country')
 
-imexdata_ressdr['month'] = imexdata_ressdr['date2'].dt.strftime("%m")
-imexdata_ressdr['month2'] = pd.to_numeric(imexdata_ressdr['month'], errors='coerce')
-imexdata_ressdr['monthnum']=pd.to_numeric(imexdata_ressdr['month2'], errors='coerce')
-imexdata_ressdr['fl1'] = np.where(imexdata_ressdr['monthnum']<4, 'Q1', 'no')
-imexdata_ressdr['fl2'] = np.where((imexdata_ressdr['monthnum']>3) & (imexdata_ressdr['monthnum']<7), 'Q2', 'no')
-imexdata_ressdr['fl3'] = np.where((imexdata_ressdr['monthnum']>6) & (imexdata_ressdr['monthnum']<10), 'Q3', 'no')
-imexdata_ressdr['fl4'] = np.where(imexdata_ressdr['monthnum']>9, 'Q4', 'no')
-q1=imexdata_ressdr[imexdata_ressdr['fl1']=='Q1']
+imexdata_ressdr_bop['month'] = imexdata_ressdr_bop['ind'].dt.strftime("%m")
+imexdata_ressdr_bop['month2'] = pd.to_numeric(imexdata_ressdr_bop['month'], errors='coerce')
+imexdata_ressdr_bop['monthnum']=pd.to_numeric(imexdata_ressdr_bop['month2'], errors='coerce')
+imexdata_ressdr_bop['fl1'] = np.where(imexdata_ressdr_bop['monthnum']<4, 'Q1', 'no')
+imexdata_ressdr_bop['fl2'] = np.where((imexdata_ressdr_bop['monthnum']>3) & (imexdata_ressdr_bop['monthnum']<7), 'Q2', 'no')
+imexdata_ressdr_bop['fl3'] = np.where((imexdata_ressdr_bop['monthnum']>6) & (imexdata_ressdr_bop['monthnum']<10), 'Q3', 'no')
+imexdata_ressdr_bop['fl4'] = np.where(imexdata_ressdr_bop['monthnum']>9, 'Q4', 'no')
+q1=imexdata_ressdr_bop[imexdata_ressdr_bop['fl1']=='Q1']
 q1['merge']=q1['fl1']+" "+q1['year'].map(str)
-q2=imexdata_ressdr[imexdata_ressdr['fl2']=='Q2']
+q2=imexdata_ressdr_bop[imexdata_ressdr_bop['fl2']=='Q2']
 q2['merge']=q2['fl2']+" "+q2['year'].map(str)
-q3=imexdata_ressdr[imexdata_ressdr['fl3']=='Q3']
+q3=imexdata_ressdr_bop[imexdata_ressdr_bop['fl3']=='Q3']
 q3['merge']=q3['fl3']+" "+q3['year'].map(str)
-q4=imexdata_ressdr[imexdata_ressdr['fl4']=='Q4']
+q4=imexdata_ressdr_bop[imexdata_ressdr_bop['fl4']=='Q4']
 q4['merge']=q4['fl4']+" "+q4['year'].map(str)
 
 gold1 = q1.append(q2, ignore_index=True)
@@ -722,9 +743,8 @@ del imexdata_ressdrgold['month2']
 del imexdata_ressdrgold['month']
 
 imexdata_ressdrgold['cnt']=1
-imexdata_ressdrgold2= imexdata_ressdrgold.groupby(['cc','fredkey','CTYNAME','merge'], as_index=False)['cnt','reserve_amt_mm','sdr_amt_mm','IMPORT MTH','EXPORT MTH'].sum()
+imexdata_ressdrgold2= imexdata_ressdrgold.groupby(['cc','fredkey','CTYNAME','merge'], as_index=False)['cnt','reserve_amt_mm','sdr_amt_mm','IMPORT MTH','EXPORT MTH','bopg_bal','bopg_exp','bopg_imp','bopgs_bal','bopgs_exp','bopgs_imp'].sum()
 quarter_data=pd.merge(imexdata_ressdrgold2, bigdata2,how='left',  left_on=['cc','merge'], right_on=['cc','quarter'])
-
 
 ########################
 #Build measures to graph
@@ -740,6 +760,14 @@ quarter_data['qreserve_amt_mm']=quarter_data['reserve_amt_mm']/quarter_data['cnt
 quarter_data['qsdr_amt_mm']=quarter_data['sdr_amt_mm']/quarter_data['cnt']
 quarter_data['qimport_amt_mm']=quarter_data['import_amt_mm']/quarter_data['cnt']
 quarter_data['qexport_amt_mm']=quarter_data['export_amt_mm']/quarter_data['cnt']
+quarter_data['qbopg_bal']=quarter_data['bopg_bal']/quarter_data['cnt']
+quarter_data['qbopg_exp']=quarter_data['bopg_exp']/quarter_data['cnt']
+quarter_data['qbopg_imp']=quarter_data['bopg_imp']/quarter_data['cnt']
+quarter_data['qbopgs_bal']=quarter_data['bopgs_bal']/quarter_data['cnt']
+quarter_data['qbopgs_exp']=quarter_data['bopgs_exp']/quarter_data['cnt']
+quarter_data['qbopgs_imp']=quarter_data['bopgs_imp']/quarter_data['cnt']
+
+test=imexdata_ressdrgold[imexdata_ressdrgold['cc']=='US']
 
 #####################
 #Build Graph Measures#
