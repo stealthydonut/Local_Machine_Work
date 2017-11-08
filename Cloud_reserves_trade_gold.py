@@ -204,6 +204,11 @@ inMemoryFile.seek(0)
 details=pd.read_csv(inMemoryFile, low_memory=False)
 details['ind']=pd.to_datetime(details['YEAR'], errors='coerce')
 details.__delitem__('YEAR')
+######################################################
+#Append the historical file and the new file together#
+######################################################
+bigdata = bopfile.append(details, ignore_index=True)
+bop_gold_gs=bigdata.drop_duplicates(['ind'], keep='last')
 
 
 boplist=[('CA','Canada','1220','NAFTA'),
