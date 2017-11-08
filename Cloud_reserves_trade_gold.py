@@ -32,7 +32,10 @@ rejects = []
 imports = []
 rejects2 = []
 bop = []
+bopg = []
+bopgs = []
 bop_gold = pd.DataFrame()
+bopgs_gold = pd.DataFrame()
 
 for year, month in itertools.product(year_list, month_list):
     url = '%s%s-%s' % (base, year, month)
@@ -99,9 +102,10 @@ for i in year_list:
     else:
         rejects2.append(int(i))
 
+bop= pd.concat(bop).reset_index().drop('index', axis=1)        
+bop.columns=['VALUE','TYPE','TIME_ID','CAT','FLAG','YEAR']        
 typelist=['BOPG','BOPGS']
 typelist2=['EXP','IMP','BAL']
-
 
 for i in typelist:
     TYP2=''.join(i)
@@ -165,6 +169,42 @@ bopgs2=pd.merge(bopgs1, bopgs_bal1, left_on=('YEAR'), right_on=('YEAR'))
 bopgs_gold=bopgs2.drop_duplicates(['YEAR'], keep='last')
 #Get the balance of payments
 bopfile=pd.merge(bopg_gold, bopgs_gold, left_on=('YEAR'), right_on=('YEAR'))
+#Generate Date
+bopfile['day']='01'
+bopfile['year2'] = bopfile['YEAR'].astype(str)
+bopfile['year3'] = bopfile['year2'].str[:4]
+bopfile['month'] = bopfile['year2'].str[5:]
+bopfile['slash']='/'
+bopfile['period']=bopfile['month']+bopfile['slash']+bopfile['day']+bopfile['slash']+bopfile['year3']
+bopfile['ind']=pd.to_datetime(bopfile['period'], errors='coerce')
+bopfile.__delitem__('day')
+bopfile.__delitem__('year2')
+bopfile.__delitem__('year3')
+bopfile.__delitem__('slash')
+bopfile.__delitem__('month')
+bopfile.__delitem__('period')
+#########################################
+#########################################
+#Read in the historical bop CSV file
+#########################################
+#########################################
+from google.cloud import storage
+client = storage.Client()
+bucket = client.get_bucket('macrofiles')
+# Then do other things...
+blob = bucket.get_blob('historial_bop.csv')
+content = blob.download_as_string()
+#Because the pandas dataframe can only read from buffers or files, we need to take the string and put it into a buffer
+inMemoryFile = StringIO.StringIO()
+inMemoryFile.write(content)
+#When you buffer, the "cursor" is at the end, and when you read it, the starting position is at the end and it will not pick up anything
+inMemoryFile.seek(0)
+#Note - anytime you read from a buffer you need to seek so it starts at the beginning
+#The low memory false exists because there was a lot of data
+details=pd.read_csv(inMemoryFile, low_memory=False)
+details['ind']=pd.to_datetime(details['YEAR'], errors='coerce')
+details.__delitem__('YEAR')
+
 
 boplist=[('CA','Canada','1220','NAFTA'),
 ('MX','Mexico','2010'),
