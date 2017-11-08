@@ -782,6 +782,20 @@ del quarter_data['y']
 ##################################
 #Put the dataset back into storage
 ##################################
+del imexdata_ressdr_bop['fl1']
+del imexdata_ressdr_bop['fl2']
+del imexdata_ressdr_bop['fl3']
+del imexdata_ressdr_bop['fl4']
+del imexdata_ressdr_bop['month2']
+del imexdata_ressdr_bop['monthnum']
+del imexdata_ressdr_bop['slash']
+del imexdata_ressdr_bop['month']
+del imexdata_ressdr_bop['year3']
+del imexdata_ressdr_bop['year2']
+del imexdata_ressdr_bop['day']
+del imexdata_ressdr_bop['period']
+del imexdata_ressdr_bop['date2']
+
 from google.cloud import storage
 client = storage.Client()
 bucket2 = client.get_bucket('macrofiles')
