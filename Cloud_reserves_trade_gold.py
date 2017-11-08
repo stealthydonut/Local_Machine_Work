@@ -785,7 +785,7 @@ del quarter_data['y']
 from google.cloud import storage
 client = storage.Client()
 bucket2 = client.get_bucket('macrofiles')
-df_out = pd.DataFrame(imexdata_ressdr)
+df_out = pd.DataFrame(imexdata_ressdr_bop)
 df_out.to_csv('imexdata_ressdr.csv', index=False)
 blob2 = bucket2.blob('imexdata_ressdr.csv')
 blob2.upload_from_filename('imexdata_ressdr.csv')
