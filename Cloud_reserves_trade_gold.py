@@ -54,6 +54,40 @@ for year, month in itertools.product(year_list, month_list):
     else:
         rejects2.append((int(year), int(month)))
 
+
+
+
+        
+
+exports = pd.concat(exports).reset_index().drop('index', axis=1)
+exports.columns=['CTY_CODE','CTY_NAME','EXPORT MTH','EXPORT YR','time']
+exports['EXPORT MTH2']=pd.to_numeric(exports['EXPORT MTH'], errors='coerce')
+exports['EXPORT YR2']=pd.to_numeric(exports['EXPORT YR'], errors='coerce')
+exports['fred_key']=pd.to_numeric(exports['CTY_CODE'], errors='coerce')
+exports['time2'] = exports['time'].astype(str)
+exports['CTY_NAME2'] = exports['CTY_NAME'].astype(str)
+exports.__delitem__('time')
+exports.__delitem__('CTY_NAME')
+exports.__delitem__('CTY_CODE')
+exports.__delitem__('EXPORT MTH')
+exports.__delitem__('EXPORT YR')
+imports = pd.concat(imports).reset_index().drop('index', axis=1)
+imports.columns=['CTY_CODE','CTY_NAME','GEN_VAL_MO','GEN_VAL_YR','time']
+imports['GEN_VAL_YR2']=pd.to_numeric(imports['GEN_VAL_YR'], errors='coerce')
+imports['GEN_VAL_MO2']=pd.to_numeric(imports['GEN_VAL_MO'], errors='coerce')
+imports['fred_key']=pd.to_numeric(imports['CTY_CODE'], errors='coerce')
+imports['time2'] = imports['time'].astype(str)
+imports['CTY_NAME2'] = imports['CTY_NAME'].astype(str)
+imports.__delitem__('time')
+imports.__delitem__('CTY_NAME')
+imports.__delitem__('CTY_CODE')
+imports.__delitem__('GEN_VAL_YR')
+imports.__delitem__('GEN_VAL_MO')
+imexdata=pd.merge(imports, exports, left_on=('fred_key','CTY_NAME2','time2'), right_on=('fred_key','CTY_NAME2','time2'))
+imexdata_gold=imexdata[imexdata['fred_key']>0]
+imexdata_gold['date2']=pd.to_datetime(imexdata_gold['time2'], errors='coerce')
+imexdata_gold['monthyear'] = imexdata_gold['date2'].dt.strftime("%Y,%m")
+
 #########################        
 #BOP - Services and Goods        
 #########################        
@@ -91,44 +125,34 @@ for i in typelist:
             bopg_gold = pd.DataFrame(testx)
         else:
             bopg_gold = bopg_gold.append(pd.DataFrame(testx))  
-        
 
-exports = pd.concat(exports).reset_index().drop('index', axis=1)
-exports.columns=['CTY_CODE','CTY_NAME','EXPORT MTH','EXPORT YR','time']
-exports['EXPORT MTH2']=pd.to_numeric(exports['EXPORT MTH'], errors='coerce')
-exports['EXPORT YR2']=pd.to_numeric(exports['EXPORT YR'], errors='coerce')
-exports['fred_key']=pd.to_numeric(exports['CTY_CODE'], errors='coerce')
-exports['time2'] = exports['time'].astype(str)
-exports['CTY_NAME2'] = exports['CTY_NAME'].astype(str)
-exports.__delitem__('time')
-exports.__delitem__('CTY_NAME')
-exports.__delitem__('CTY_CODE')
-exports.__delitem__('EXPORT MTH')
-exports.__delitem__('EXPORT YR')
-imports = pd.concat(imports).reset_index().drop('index', axis=1)
-imports.columns=['CTY_CODE','CTY_NAME','GEN_VAL_MO','GEN_VAL_YR','time']
-imports['GEN_VAL_YR2']=pd.to_numeric(imports['GEN_VAL_YR'], errors='coerce')
-imports['GEN_VAL_MO2']=pd.to_numeric(imports['GEN_VAL_MO'], errors='coerce')
-imports['fred_key']=pd.to_numeric(imports['CTY_CODE'], errors='coerce')
-imports['time2'] = imports['time'].astype(str)
-imports['CTY_NAME2'] = imports['CTY_NAME'].astype(str)
-imports.__delitem__('time')
-imports.__delitem__('CTY_NAME')
-imports.__delitem__('CTY_CODE')
-imports.__delitem__('GEN_VAL_YR')
-imports.__delitem__('GEN_VAL_MO')
-imexdata=pd.merge(imports, exports, left_on=('fred_key','CTY_NAME2','time2'), right_on=('fred_key','CTY_NAME2','time2'))
-imexdata_gold=imexdata[imexdata['fred_key']>0]
-imexdata_gold['date2']=pd.to_datetime(imexdata_gold['time2'], errors='coerce')
-imexdata_gold['monthyear'] = imexdata_gold['date2'].dt.strftime("%Y,%m")
-
-#####################################
-#Balace of Payments and Services File
-#####################################
-
-bopgs = pd.concat(bopgs).reset_index().drop('index', axis=1)
-bopgs.columns=['VALUE','TYPE','TIME_ID','CAT','FLAG','YEAR']    
-
+##################
+#Develop variables            
+##################            
+bopg=bopg_gold[bopg_gold['CAT']=='BOPG']
+bopg['bopg_exp']=bopg['EXP']
+bopg['bopg_imp']=bopg['IMP']
+bopg['bopg_bal']=bopg['BAL']
+bopg.__delitem__('VALUE')
+bopg.__delitem__('TYPE')
+bopg.__delitem__('TIME_ID')
+bopg.__delitem__('CAT')
+bopg.__delitem__('FLAG')
+bopg.__delitem__('EXP')
+bopg.__delitem__('IMP')
+bopg.__delitem__('BAL') 
+bopgs=bopg_gold[bopg_gold['CAT']=='BOPGS']
+bopgs['bopgs_exp']=bopgs['EXP']
+bopgs['bopgs_imp']=bopgs['IMP']
+bopgs['bopgs_bal']=bopgs['BAL']
+bopgs.__delitem__('VALUE')
+bopgs.__delitem__('TYPE')
+bopgs.__delitem__('TIME_ID')
+bopgs.__delitem__('CAT')
+bopgs.__delitem__('FLAG')
+bopgs.__delitem__('EXP')
+bopgs.__delitem__('IMP')
+bopgs.__delitem__('BAL') 
 
 
 boplist=[('CA','Canada','1220','NAFTA'),
