@@ -795,6 +795,7 @@ del imexdata_ressdr_bop['year2']
 del imexdata_ressdr_bop['day']
 del imexdata_ressdr_bop['period']
 del imexdata_ressdr_bop['date2']
+del imexdata_ressdr_bop['YEAR']
 
 from google.cloud import storage
 client = storage.Client()
