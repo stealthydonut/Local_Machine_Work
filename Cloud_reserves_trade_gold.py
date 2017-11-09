@@ -409,7 +409,7 @@ boplist=[('CA','Canada','1220','NAFTA'),
 ('EZ','ECB','','EU'),
 ('GI','Gibraltar','','EU'),
 ('IM','Isle of Man','','EU'),
-('US','United States','','US'),
+('US','United States','0000','US'),
 ('AQ','Antarctica'),
 ('AS','American Samoa'),
 ('AX','Åland Islands'),
@@ -661,6 +661,26 @@ imexdata_ressdr.__delitem__('slash')
 imexdata_ressdr.__delitem__('month')
 imexdata_ressdr.__delitem__('period')
 imexdata_ressdr_bop=pd.merge(imexdata_ressdr, bop_gold_gs, how='outer', left_on=('ind','cc'), right_on=('ind','cc'))
+
+#############################################
+#############################################
+#Get the GDP - Note it is quarterly#
+#############################################
+#############################################
+from fredapi import Fred
+fred = Fred(api_key='4af3776273f66474d57345df390d74b6')
+gdp = fred.get_series_all_releases('GDP') #GDP quarterly
+#Need to get the last updated record
+gdp2=gdp[gdp['value'].notnull()]
+gdp3=gdp2.sort_values(['date','realtime_start'], ascending=[False, True])
+gdp4=gdp3.drop_duplicates(['date'], keep='last')
+gdp4['GDP value'] = pd.to_numeric(gdp4['value'], errors='coerce')
+gdp4['ind']=pd.to_datetime(gdp4['date'], errors='coerce')
+gdp4.__delitem__('date')
+gdp4.__delitem__('realtime_start')
+gdp4.__delitem__('value')
+
+
 
 ############################################
 #Begin to develop the gold file
