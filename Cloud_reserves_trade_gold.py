@@ -675,13 +675,43 @@ gdp2=gdp[gdp['value'].notnull()]
 gdp3=gdp2.sort_values(['date','realtime_start'], ascending=[False, True])
 gdp4=gdp3.drop_duplicates(['date'], keep='last')
 gdp4['GDP value'] = pd.to_numeric(gdp4['value'], errors='coerce')
+#gdp4['GDP value mm']= gdp4['GDP value']*1000000
 gdp4['ind']=pd.to_datetime(gdp4['date'], errors='coerce')
-gdp4.__delitem__('date')
-gdp4.__delitem__('realtime_start')
-gdp4.__delitem__('value')
+gdp4['cc']='US'
+gdp4['CTYNAME']='United States'
+gdp4['fredkey']='0000'
+gdp4['year'] = gdp4['ind'].dt.strftime("%Y")
+gdp4['month'] = gdp4['ind'].dt.strftime("%m")
+gdp4['month2'] = pd.to_numeric(gdp4['month'], errors='coerce')
+gdp4['monthnum']=pd.to_numeric(gdp4['month2'], errors='coerce')
+gdp4['fl1'] = np.where(gdp4['monthnum']<4, 'Q1', 'no')
+gdp4['fl2'] = np.where((gdp4['monthnum']>3) & (gdp4['monthnum']<7), 'Q2', 'no')
+gdp4['fl3'] = np.where((gdp4['monthnum']>6) & (gdp4['monthnum']<10), 'Q3', 'no')
+gdp4['fl4'] = np.where(gdp4['monthnum']>9, 'Q4', 'no')
+q1=gdp4[gdp4['fl1']=='Q1']
+q1['merge']=q1['fl1']+" "+q1['year'].map(str)
+q2=gdp4[gdp4['fl2']=='Q2']
+q2['merge']=q2['fl2']+" "+q2['year'].map(str)
+q3=gdp4[gdp4['fl3']=='Q3']
+q3['merge']=q3['fl3']+" "+q3['year'].map(str)
+q4=gdp4[gdp4['fl4']=='Q4']
+q4['merge']=q4['fl4']+" "+q4['year'].map(str)
 
-
-
+gold1 = q1.append(q2, ignore_index=True)
+gold2 = q3.append(gold1, ignore_index=True)
+gdp_gold = q4.append(gold2, ignore_index=True)
+gdp_gold.__delitem__('date')
+gdp_gold.__delitem__('realtime_start')
+gdp_gold.__delitem__('value')
+gdp_gold.__delitem__('year')
+gdp_gold.__delitem__('month')
+gdp_gold.__delitem__('month2')
+gdp_gold.__delitem__('monthnum')
+gdp_gold.__delitem__('fl1')
+gdp_gold.__delitem__('fl2')
+gdp_gold.__delitem__('fl3')
+gdp_gold.__delitem__('fl4')
+gdp_gold.__delitem__('ind')
 ############################################
 #Begin to develop the gold file
 ############################################
@@ -764,8 +794,27 @@ del imexdata_ressdrgold['month']
 
 imexdata_ressdrgold['cnt']=1
 imexdata_ressdrgold2= imexdata_ressdrgold.groupby(['cc','fredkey','CTYNAME','merge'], as_index=False)['cnt','reserve_amt_mm','sdr_amt_mm','IMPORT MTH','EXPORT MTH','bopg_bal','bopg_exp','bopg_imp','bopgs_bal','bopgs_exp','bopgs_imp'].sum()
-quarter_data=pd.merge(imexdata_ressdrgold2, bigdata2,how='left',  left_on=['cc','merge'], right_on=['cc','quarter'])
-
+quarter_datax=pd.merge(imexdata_ressdrgold2, bigdata2,how='left',  left_on=['cc','merge'], right_on=['cc','quarter'])
+#Make a special dataset for the united states
+usdataset=imexdata_ressdrgold[imexdata_ressdrgold['cc']=='US']
+usdataset['CTYNAME']='United States'
+usdataset['year'] = usdataset['ind'].dt.strftime("%Y")
+usdataset['year2'] = usdataset['year'].astype(str)
+usdataset['YEAR']= usdataset['year2'].str[:4]
+usdataset['merge2'] = usdataset['merge'].astype(str)
+usdataset['merge3']= usdataset['merge2'].str[:3]
+usdataset['merge'] =usdataset['merge3']+usdataset['YEAR']
+usdataset2= usdataset.groupby(['cc','fredkey','CTYNAME','merge'], as_index=False)['cnt','reserve_amt_mm','sdr_amt_mm','IMPORT MTH','EXPORT MTH','bopg_bal','bopg_exp','bopg_imp','bopgs_bal','bopgs_exp','bopgs_imp'].sum()
+############################
+#join GDP data to bopgs bopg
+############################
+usdataset3=pd.merge(gdp_gold, usdataset2,how='outer',  left_on=['cc','merge'], right_on=['cc','merge'])
+########################################
+#Join the GDP data with the quarter data
+########################################
+quarter_data2=quarter_datax[quarter_datax['cc']!='US']
+quarter_data = usdataset3.append(quarter_data2, ignore_index=True)
+quarter_data=quarter_data.fillna(0)
 ########################
 #Build measures to graph
 ########################
@@ -787,8 +836,7 @@ quarter_data['qbopgs_bal']=quarter_data['bopgs_bal']/quarter_data['cnt']
 quarter_data['qbopgs_exp']=quarter_data['bopgs_exp']/quarter_data['cnt']
 quarter_data['qbopgs_imp']=quarter_data['bopgs_imp']/quarter_data['cnt']
 
-test=imexdata_ressdrgold[imexdata_ressdrgold['cc']=='US']
-
+imexdata_ressdr_bop=imexdata_ressdr_bop.fillna(0)
 #####################
 #Build Graph Measures#
 ######################
