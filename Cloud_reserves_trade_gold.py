@@ -805,6 +805,9 @@ usdataset['merge2'] = usdataset['merge'].astype(str)
 usdataset['merge3']= usdataset['merge2'].str[:3]
 usdataset['merge'] =usdataset['merge3']+usdataset['YEAR']
 usdataset2= usdataset.groupby(['cc','fredkey','CTYNAME','merge'], as_index=False)['cnt','reserve_amt_mm','sdr_amt_mm','IMPORT MTH','EXPORT MTH','bopg_bal','bopg_exp','bopg_imp','bopgs_bal','bopgs_exp','bopgs_imp'].sum()
+
+#test=testx.sort_values(['merge'], ascending=[True])
+#testx=usdataset[usdataset['cc']=='US']
 ############################
 #join GDP data to bopgs bopg
 ############################
