@@ -54,6 +54,8 @@ ism2 = quandl.get("ISM/MAN_PMI") #another ISM
 gold = quandl.get("LBMA/GOLD")
 silver = quandl.get("LBMA/SILVER")
 copper = quandl.get ("COM/COPPER")  #copper
+corn = quandl.get ("TFGRAIN/CORN") #corn
+soybean = quandl.get ("TFGRAIN/SOYBEANS") #soybean
 oil = quandl.get("OPEC/ORB")
 uranium = quandl.get("ODA/PURAN_USD")
 ustax = quandl.get("FMSTREAS/MTS")
@@ -85,6 +87,8 @@ fxusdeur = quandl.get("FED/RXI_US_N_B_EU")
 gold.columns=['Gold USD (AM)','Gold USD (PM)','Gold GBP (AM)','Gold GBP (PM)','Gold EURO (AM)','Gold EURO (PM)']
 silver.columns=['Silver USD','Silver GBP','Silver EURO']
 copper.columns=['Copper USD']
+corn.columns=['Cash Price Corn','Basis Corn','Fall Price Corn','Fall Basis Corn']
+soybean.columns=['Cash Price Soybean','Basis Soybean','Fall Price Soybean','Fall Basis Soybean']
 oil.columns=['Oil USD']
 shiller.columns=['Shiller Value']
 ustax.columns=['US Receipts','US Outlays','US Deficit/Surplus (-)','US Borrowing from the Public','USReduction of Operating Cash','US By Other Means']
@@ -171,6 +175,8 @@ oil['ind']=oil.index
 copper['ind']=copper.index
 paladium['ind']=paladium.index
 platinum['ind']=platinum.index 
+corn['ind']=corn.index 
+soybean['ind']=soybean.index 
 balticdryindex['ind']=balticdryindex.index
 fxusdcad['ind']=fxusdcad.index
 fxusdyuan['ind']=fxusdyuan.index
@@ -208,7 +214,9 @@ df19=df18.merge(balticdryindex, on='ind', how='outer')
 df20=df19.merge(balticcapesizeindex, on='ind', how='outer') 
 df21=df20.merge(balticsupramexindex, on='ind', how='outer') 
 df22=df21.merge(balticpanamaxindex, on='ind', how='outer') 
-daily_filex=df22.merge(oil, on='ind', how='outer')
+df23=df22.merge(corn, on='ind', how='outer') 
+df24=df23.merge(soybean, on='ind', how='outer') 
+daily_filex=df24.merge(oil, on='ind', how='outer')
 ###########################
 #Generate a daily timestamp
 ###########################
@@ -281,6 +289,8 @@ daily_file['Silver daycnt'] = np.where(daily_file['Silver USD']>0, 1, 0)
 daily_file['Paladium daycnt'] = np.where(daily_file['Paladium USD (AM)']>0, 1, 0)
 daily_file['Platinum daycnt'] = np.where(daily_file['Platinum USD (AM)']>0, 1, 0)
 daily_file['Oil daycnt'] = np.where(daily_file['Oil USD']>0, 1, 0)
+daily_file['Corn daycnt'] = np.where(daily_file['Cash Price Corn']>0, 1, 0)
+daily_file['Soybean daycnt'] = np.where(daily_file['Cash Price Soybean']>0, 1, 0)
 daily_file['Copper daycnt'] = np.where(daily_file['Copper USD']>0, 1, 0)
 daily_file['libor3mth daycnt'] = np.where(daily_file['libor3mth']>0, 1, 0)
 daily_file['libor12mth daycnt'] = np.where(daily_file['libor12mth']>0, 1, 0)
@@ -295,9 +305,10 @@ daily_file['Daily Share Volume daycnt'] = np.where(daily_file['Daily Share Volum
 daily_file['daycnt'] = 1
 
 dailymth = daily_file.groupby(['monthyear'], as_index=False)['daycnt','Gold daycnt','Silver daycnt','Oil daycnt','Copper daycnt','Paladium daycnt','Platinum daycnt','Daily Share Volume daycnt',\
-'libor3mth daycnt','libor12mth daycnt','treas10mth daycnt','libor3mth','libor12mth','treas10mth','balticdryindex Index daycnt',\
+'libor3mth daycnt','libor12mth daycnt','treas10mth daycnt','libor3mth','libor12mth','treas10mth','balticdryindex Index daycnt','Soybean daycnt','Copper daycnt',\
 'balticcapesizeindex Index daycnt','balticsupramexindex Index daycnt','balticpanamaxindex Index daycnt','balticcapesizeindex Index daycnt','balticsupramexindex Index daycnt','balticpanamaxindex Index daycnt','Total Net Asset Value Tonnes in the Trust daycnt',\
-'Gold USD (AM)','Gold USD (PM)','Gold GBP (AM)','Gold GBP (PM)','Gold EURO (AM)','Gold EURO (PM)','Copper USD','Silver USD','Silver GBP','Silver EURO','Oil USD','Total Net Asset Value Tonnes in the Trust','balticdryindex Index','Platinum USD (AM)','Paladium USD (AM)','Daily Share Volume'].sum()
+'Gold USD (AM)','Gold USD (PM)','Gold GBP (AM)','Gold GBP (PM)','Gold EURO (AM)','Gold EURO (PM)','Copper USD','Silver USD','Silver GBP','Silver EURO','Oil USD','Total Net Asset Value Tonnes in the Trust','balticdryindex Index','Platinum USD (AM)','Paladium USD (AM)','Daily Share Volume',\
+                                                           'Cash Price Corn','Cash Price Soybean'].sum()
 
 
 ################################
