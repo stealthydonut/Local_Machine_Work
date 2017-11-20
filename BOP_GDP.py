@@ -246,3 +246,12 @@ bop_gold_merge= bop_gold.groupby(['cc','CTYNAME','merge'], as_index=False)['bopg
 ############################
 bopgdp=pd.merge(gdp_gold, bop_gold_merge,how='outer',  left_on=['cc','merge'], right_on=['cc','merge'])
 bopgdp.__delitem__('CTYNAME_y')
+############################
+#Analytical Measures on File
+############################
+#Balance of Services
+bopgdp['bos_bal']=bopgdp['bopgs_bal']-bopgdp['bopg_bal']
+bopgdp['bos_exp']=bopgdp['bopgs_exp']-bopgdp['bopg_exp']
+bopgdp['bos_imp']=bopgdp['bopgs_imp']-bopgdp['bopg_imp']
+
+
