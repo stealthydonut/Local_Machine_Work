@@ -4,22 +4,23 @@ import numpy as np
 import pandas as pd
 import requests
 import datetime
-
 from pandas.compat import StringIO
-#Sourced from the following site https://github.com/mortada/fredapi
-from fredapi import Fred
-fred = Fred(api_key='4af3776273f66474d57345df390d74b6')
 import StringIO
 import datetime as dt
 import ast
 import itertools
-#import matplotlib
-#import matplotlib.pyplot as plt
 import sys
 if sys.version_info[0] < 3: 
     from StringIO import StringIO as stio
 else:
     from io import StringIO as stio
+
+####################################    
+#Get the credentials to acquire data    
+####################################
+#Sourced from the following site https://github.com/mortada/fredapi
+from fredapi import Fred
+fred = Fred(api_key='4af3776273f66474d57345df390d74b6')
     
 bop = []
 bopg = []
@@ -171,7 +172,6 @@ gdp4['GDP value'] = pd.to_numeric(gdp4['value'], errors='coerce')
 gdp4['ind']=pd.to_datetime(gdp4['date'], errors='coerce')
 gdp4['cc']='US'
 gdp4['CTYNAME']='United States'
-gdp4['fredkey']='0000'
 gdp4['year'] = gdp4['ind'].dt.strftime("%Y")
 gdp4['month'] = gdp4['ind'].dt.strftime("%m")
 gdp4['month2'] = pd.to_numeric(gdp4['month'], errors='coerce')
@@ -181,13 +181,13 @@ gdp4['fl2'] = np.where((gdp4['monthnum']>3) & (gdp4['monthnum']<7), 'Q2', 'no')
 gdp4['fl3'] = np.where((gdp4['monthnum']>6) & (gdp4['monthnum']<10), 'Q3', 'no')
 gdp4['fl4'] = np.where(gdp4['monthnum']>9, 'Q4', 'no')
 q1=gdp4[gdp4['fl1']=='Q1']
-q1['merge']=q1['fl1']+" "+q1['year'].map(str)
+q1['merge']=q1['year'].map(str)+" "+q1['fl1']
 q2=gdp4[gdp4['fl2']=='Q2']
-q2['merge']=q2['fl2']+" "+q2['year'].map(str)
+q2['merge']=q2['year'].map(str)+" "+q2['fl2']
 q3=gdp4[gdp4['fl3']=='Q3']
-q3['merge']=q3['fl3']+" "+q3['year'].map(str)
+q3['merge']=q3['year'].map(str)+" "+q3['fl3']
 q4=gdp4[gdp4['fl4']=='Q4']
-q4['merge']=q4['fl4']+" "+q4['year'].map(str)
+q4['merge']=q4['year'].map(str)+" "+q4['fl4']
 
 gold1 = q1.append(q2, ignore_index=True)
 gold2 = q3.append(gold1, ignore_index=True)
@@ -206,19 +206,43 @@ gdp_gold.__delitem__('fl4')
 gdp_gold.__delitem__('ind')
 
 #Make a special dataset for the united states
-usdataset=imexdata_ressdrgold[imexdata_ressdrgold['cc']=='US']
+usdataset=bop_gold_gs[bop_gold_gs['cc']=='US']
 usdataset['CTYNAME']='United States'
 usdataset['year'] = usdataset['ind'].dt.strftime("%Y")
-usdataset['year2'] = usdataset['year'].astype(str)
-usdataset['YEAR']= usdataset['year2'].str[:4]
-usdataset['merge2'] = usdataset['merge'].astype(str)
-usdataset['merge3']= usdataset['merge2'].str[:3]
-usdataset['merge'] =usdataset['merge3']+usdataset['YEAR']
-usdataset2= usdataset.groupby(['cc','fredkey','CTYNAME','merge'], as_index=False)['cnt','reserve_amt_mm','sdr_amt_mm','IMPORT MTH','EXPORT MTH','bopg_bal','bopg_exp','bopg_imp','bopgs_bal','bopgs_exp','bopgs_imp'].sum()
-
-#test=testx.sort_values(['merge'], ascending=[True])
-#testx=usdataset[usdataset['cc']=='US']
+usdataset['month'] = usdataset['ind'].dt.strftime("%m")
+usdataset['month2'] = pd.to_numeric(usdataset['month'], errors='coerce')
+usdataset['monthnum']=pd.to_numeric(usdataset['month2'], errors='coerce')
+usdataset['fl1'] = np.where(usdataset['monthnum']<4, 'Q1', 'no')
+usdataset['fl2'] = np.where((usdataset['monthnum']>3) & (usdataset['monthnum']<7), 'Q2', 'no')
+usdataset['fl3'] = np.where((usdataset['monthnum']>6) & (usdataset['monthnum']<10), 'Q3', 'no')
+usdataset['fl4'] = np.where(usdataset['monthnum']>9, 'Q4', 'no')
+q1=usdataset[usdataset['fl1']=='Q1']
+q1['merge']=q1['year'].map(str)+" "+q1['fl1']
+q2=usdataset[usdataset['fl2']=='Q2']
+q2['merge']=q2['year'].map(str)+" "+q2['fl2']
+q3=usdataset[usdataset['fl3']=='Q3']
+q3['merge']=q3['year'].map(str)+" "+q3['fl3']
+q4=usdataset[usdataset['fl4']=='Q4']
+q4['merge']=q4['year'].map(str)+" "+q4['fl4']
+gold1 = q1.append(q2, ignore_index=True)
+gold2 = q3.append(gold1, ignore_index=True)
+bop_gold = q4.append(gold2, ignore_index=True)
+bop_gold.__delitem__('YEAR')
+bop_gold.__delitem__('year')
+bop_gold.__delitem__('month')
+bop_gold.__delitem__('month2')
+bop_gold.__delitem__('monthnum')
+bop_gold.__delitem__('fl1')
+bop_gold.__delitem__('fl2')
+bop_gold.__delitem__('fl3')
+bop_gold.__delitem__('fl4')
+bop_gold.__delitem__('ind')
+#################################################
+#Group all the quarters together into one dataset
+#################################################
+bop_gold_merge= bop_gold.groupby(['cc','CTYNAME','merge'], as_index=False)['bopg_bal','bopg_exp','bopg_imp','bopgs_bal','bopgs_exp','bopgs_imp'].sum()
 ############################
 #join GDP data to bopgs bopg
 ############################
-usdataset3=pd.merge(gdp_gold, usdataset2,how='outer',  left_on=['cc','merge'], right_on=['cc','merge'])
+bopgdp=pd.merge(gdp_gold, bop_gold_merge,how='outer',  left_on=['cc','merge'], right_on=['cc','merge'])
+bopgdp.__delitem__('CTYNAME_y')
