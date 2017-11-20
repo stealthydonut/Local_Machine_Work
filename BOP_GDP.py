@@ -253,5 +253,37 @@ bopgdp.__delitem__('CTYNAME_y')
 bopgdp['bos_bal']=bopgdp['bopgs_bal']-bopgdp['bopg_bal']
 bopgdp['bos_exp']=bopgdp['bopgs_exp']-bopgdp['bopg_exp']
 bopgdp['bos_imp']=bopgdp['bopgs_imp']-bopgdp['bopg_imp']
+#Balance of Goods and Balance of Services Import and Export Differences
+bopgdp['bos_diff_imp/exp']=bopgdp['bos_exp']-bopgdp['bos_imp']
+bopgdp['bopg_diff_imp/exp']=bopgdp['bopg_exp']-bopgdp['bopg_imp']
+#GDP is in billions and BOP is in millions
+bopgdp['GDP_mil']=bopgdp['GDP value']*1000
+bopgdp['bos_diff/gdp']=bopgdp['bos_diff_imp/exp']/bopgdp['GDP_mil']
+bopgdp['bopg_diff/gdp']=bopgdp['bopg_diff_imp/exp']/bopgdp['GDP_mil']
+#source http://fofoa.blogspot.ca/search?q=mmt
+#There are three definitions private sector, government sector, and foreign sector
+#foreign sector = private sector + government sector (these are all of the imports and exports
+#the foreign sector in deficit is a net currency exporter (i.e. - it exports currency to get free goods)
+#the foreign sector is the amount of US paper our foreign trading partners are taking in each year
+#When they take in dollars, those show up as a current account surplus on their sheet and a current account deficit on ours
+#the government sector is always negative because the US gets stuff for free because it exports currency
+#the private sector are the services that are sold to foreign countries
+bopgdp['private sector']=bopgdp['bos_bal']/bopgdp['GDP_mil']
+bopgdp['government sector']=bopgdp['bopg_bal']/bopgdp['GDP_mil']
+
+##################################
+#Put the dataset back into storage
+##################################
+from google.cloud import storage
+client = storage.Client()
+bucket2 = client.get_bucket('macrofiles')
+df_out = pd.DataFrame(bopgdp)
+df_out.to_csv('bopgdp.csv', index=False)
+blob2 = bucket2.blob('bopgdp.csv')
+blob2.upload_from_filename('bopgdp.csv')
+
+
+
+
 
 
