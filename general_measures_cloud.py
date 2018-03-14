@@ -78,7 +78,13 @@ fxusdaud = quandl.get("FRED/DEXUSAL")
 fxusdmex = quandl.get("FRED/DEXMXUS")
 fxusdche = quandl.get("FRED/DEXSZUS")
 fxusdeur = quandl.get("FED/RXI_US_N_B_EU")
-
+cobalt = quandl.get("LME/PR_CO")
+molybdenum = quandl.get("LME/PR_MO")
+zinc = quandl.get("LME/PR_ZI")
+tin = quandl.get("LME/PR_TN")
+aluminum = quandl.get("LME/PR_AL")
+nickel = quandl.get("LME/PR_NI")
+copper = quandl.get("LME/PR_CU")
 
 
 ######################
@@ -112,6 +118,20 @@ fxusdaud.columns=['aud/usd']
 fxusdmex.columns=['mex/usd']
 fxusdche.columns=['che/usd']
 fxusdeur.columns=['eur/usd']
+cobaltgold=cobalt[['Cash Buyer','3-months Buyer']]
+molybdenumgold=molybdenum[['Cash Buyer','3-months Buyer']]
+zincgold=zinc[['Cash Buyer','3-months Buyer']]
+tingold=tin[['Cash Buyer','3-months Buyer']]
+aluminumgold=aluminum[['Cash Buyer','3-months Buyer']]
+nickelgold=nickel[['Cash Buyer','3-months Buyer']]
+coppergold=copper[['Cash Buyer','3-months Buyer']]
+cobaltgold.columns=['cobalt price','cobalt 3mth price']
+molybdenumgold.columns=['molybdenum','molybdenum 3mth price']
+zincgold.columns=['zinc','zinc 3mth price']
+tingold.columns=['tin','tin 3mth price']
+aluminumgold.columns=['aluminum','aluminum 3mth price']
+nickelgold.columns=['nickel','nickel 3mth price']
+coppergold.columns=['copper','copper 3mth price']
 #######################
 #Clean up the FRED data
 #######################
@@ -190,7 +210,14 @@ fxusdsko['ind']=fxusdsko.index
 fxusdaud['ind']=fxusdaud.index
 fxusdmex['ind']=fxusdmex.index
 fxusdche['ind']=fxusdche.index
-fxusdeur['ind']=fxusdeur.index         
+fxusdeur['ind']=fxusdeur.index
+cobaltgold['ind']=cobaltgold.index
+molybdenumgold['ind']=molybdenumgold.index
+zincgold['ind']=zincgold.index
+tingold['ind']=tingold.index
+aluminumgold['ind']=aluminumgold.index
+nickelgold['ind']=nickelgold.index
+coppergold['ind']=coppergold.index
 ###########################
 #Merge daily files together
 ###########################
@@ -218,8 +245,15 @@ df20=df19.merge(balticcapesizeindex, on='ind', how='outer')
 df21=df20.merge(balticsupramexindex, on='ind', how='outer') 
 df22=df21.merge(balticpanamaxindex, on='ind', how='outer') 
 df23=df22.merge(corn, on='ind', how='outer') 
-df24=df23.merge(soybean, on='ind', how='outer') 
-daily_filex=df24.merge(oil, on='ind', how='outer')
+df24=df23.merge(soybean, on='ind', how='outer')
+df25=df24.merge(cobaltgold, on='ind', how='outer')
+df26=df25.merge(molybdenumgold, on='ind', how='outer')
+df27=df26.merge(zincgold, on='ind', how='outer')
+df28=df27.merge(tingold, on='ind', how='outer')
+df29=df28.merge(aluminumgold, on='ind', how='outer')
+df30=df29.merge(nickelgold, on='ind', how='outer')
+df31=df30.merge(coppergold, on='ind', how='outer')
+daily_filex=df31.merge(oil, on='ind', how='outer')
 ###########################
 #Generate a daily timestamp
 ###########################
