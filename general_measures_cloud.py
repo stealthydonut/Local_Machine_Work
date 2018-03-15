@@ -263,7 +263,6 @@ daily_filex['daily date']=daily_filex['ind']
 ############################
 daily_file=daily_filex.drop_duplicates(['ind'], keep='last')
 
-
 ##################################
 #Put the dataset back into storage
 ##################################
@@ -419,6 +418,48 @@ monthly_file['ma6 US Receipts'] = monthly_file['US Receipts'].rolling(window=6).
 monthly_file['ma6 ISM Diffusion Index'] = monthly_file['ISM Diffusion Index'].rolling(window=6).mean()
 
 
+
+####################
+#Daily File Measures
+####################
+
+#Generate the percentage change for any variable on the file
+varlist=('cobalt','molybdenumgold','zinc','tin','alumininum','nickel','copper')
+for i in varlist:
+    part=''.join(i)
+    time126='_lag126' #6 month
+    time252='_lag252' #1 year
+    time504='_lag504' #2 year
+    time756='_lag756' #3 year
+    time6mth='_6mth'
+    time1yr='_1yr'
+    time2yr='_2yr'
+    time3yr='_3yr'
+    #Generate lag variable names
+    text126=part+time126
+    text252=part+time252
+    text504=part+time504
+    text756=part+time756
+    #Generate variable titles
+    title6mth=part+time6mth
+    title1yr=part+time1yr
+    title2yr=part+time2yr    
+    title3yr=part+time3yr
+    
+    daily_file[text126] = daily_file[part].shift(126)
+    daily_file[text252] = daily_file[part].shift(252)
+    daily_file[text504] = daily_file[part].shift(504)
+    daily_file[text756] = daily_file[part].shift(756)
+    daily_file[title6mth] = 1-(daily_file[part]/daily_file[text126])
+    daily_file[title1yr]  = 1-(daily_file[part]/daily_file[text252])
+    daily_file[title2yr]  = 1-(daily_file[part]/daily_file[text504])
+    daily_file[title3yr]  = 1-(daily_file[part]/daily_file[text756])    
+    #delete variable names
+    daily_file.__delitem__(text126)
+    daily_file.__delitem__(text252)
+    daily_file.__delitem__(text504)
+    daily_file.__delitem__(text756)    
+    print coppergold
 
 
 daily_file['Gold Silver Ratio']=daily_file['Gold USD (PM)']/daily_file['Silver USD']
